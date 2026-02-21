@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bittans Dag</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F0E8;
+    --card: #FFFDF8;
+    --ink: #1A1612;
+    --ink-soft: #6B5E52;
+    --accent: #C84B2F;
+    --accent-soft: #F2E8E4;
+    --green: #2E6B4F;
+    --green-soft: #E4F0EB;
+    --amber: #B8760A;
+    --amber-soft: #FFF3DC;
+    --blue: #1A4F7A;
+    --blue-soft: #E4EEF7;
+    --border: #E8E0D4;
+    --shadow: 0 2px 12px rgba(26,22,18,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+  }
+
+  .header {
+    background: var(--ink);
+    color: white;
+    padding: 22px 20px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+  }
+
+  .header-right { text-align: right; }
+
+  .header-date {
+    font-size: 13px;
+    opacity: 0.6;
+    font-weight: 300;
+  }
+
+  .header-daytype {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 3px;
+    opacity: 0.45;
+  }
+
+  .clock-bar {
+    background: var(--accent);
+    color: white;
+    text-align: center;
+    padding: 9px;
+    font-size: 30px;
+    font-family: 'DM Serif Display', serif;
+    letter-spacing: 3px;
+  }
+
+  /* Alert banner */
+  .alert-banner {
+    margin: 14px 14px 0;
+    padding: 13px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.35;
+  }
+  .alert-banner.show { display: flex; }
+  .alert-banner.urgent { background: var(--accent-soft); border-left: 4px solid var(--accent); color: var(--accent); }
+  .alert-banner.info { background: var(--amber-soft); border-left: 4px solid var(--amber); color: var(--amber); }
+
+  /* Section */
+  .section { margin: 14px 14px 0; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    padding-left: 2px;
+  }
+
+  /* Schedule */
+  .schedule {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+
+  .schedule-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .schedule-item:last-child { border-bottom: none; }
+  .schedule-item.done { opacity: 0.38; }
+  .schedule-item.done .s-text { text-decoration: line-through; }
+  .schedule-item.active-now { background: #FFFBF5; }
+  .schedule-item.active-now::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .schedule-item.critical .s-time { color: var(--accent); }
+
+  .s-time {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 44px;
+    font-variant-numeric: tabular-nums;
+  }
+  .s-icon { font-size: 18px; min-width: 26px; text-align: center; }
+  .s-body { flex: 1; }
+  .s-text { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .s-sub { font-size: 12px; color: var(--ink-soft); margin-top: 1px; line-height: 1.35; }
+
+  .check-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .schedule-item.done .check-circle {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  /* Task cards */
+  .task-cards { display: flex; flex-direction: column; gap: 9px; }
+
+  .task-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 13px 14px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .task-card.done { opacity: 0.38; }
+  .task-card.done .tc-title { text-decoration: line-through; }
+
+  .tc-icon { font-size: 20px; margin-top: 1px; flex-shrink: 0; }
+  .tc-body { flex: 1; }
+  .tc-title { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .tc-desc { font-size: 12px; color: var(--ink-soft); margin-top: 3px; line-height: 1.4; }
+
+  .tc-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+    align-self: flex-start;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+  }
+  .badge-red { background: var(--accent-soft); color: var(--accent); }
+  .badge-green { background: var(--green-soft); color: var(--green); }
+  .badge-amber { background: var(--amber-soft); color: var(--amber); }
+  .badge-blue { background: var(--blue-soft); color: var(--blue); }
+
+  /* System check strip */
+  .sys-strip {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .sys-item {
+    display: flex;
+    align-items: center;
+    padding: 11px 14px;
+    gap: 11px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .sys-item:last-child { border-bottom: none; }
+  .sys-item.done { opacity: 0.38; }
+  .sys-item.done .sys-label { text-decoration: line-through; }
+
+  .sys-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-red { background: var(--accent); }
+  .dot-amber { background: var(--amber); }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+
+  .sys-label { font-size: 14px; font-weight: 500; flex: 1; }
+  .sys-sub { font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
+
+  .sys-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .sys-item.done .sys-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  /* Progress */
+  .progress-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 100px;
+    height: 7px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 100px;
+    transition: width 0.45s ease;
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 7px;
+  }
+
+  /* Day off */
+  .day-off {
+    text-align: center;
+    padding: 70px 24px;
+    display: none;
+  }
+  .day-off-emoji { font-size: 60px; margin-bottom: 16px; }
+  .day-off h2 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 8px; }
+  .day-off p { color: var(--ink-soft); font-size: 15px; }
+
+  /* Reset */
+  .reset-btn {
+    display: block;
+    margin: 18px auto 0;
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--ink-soft);
+    padding: 9px 22px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Day mode badge */
+  .daymode-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .daymode-prod { background: var(--accent-soft); color: var(--accent); }
+  .daymode-admin { background: var(--blue-soft); color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>Bittans Dag</h1>
+    <div class="header-right">
+      <div class="header-date" id="date-display"></div>
+      <div class="header-daytype" id="daytype-display"></div>
+    </div>
+  </div>
+</div>
+
+<div class="clock-bar" id="clock">07:00</div>
+
+<div class="alert-banner urgent" id="alert-banner">
+  <span>⚠️</span>
+  <span id="alert-text"></span>
+</div>
+
+<div id="main-content">
+
+  <!-- Schema -->
+  <div class="section">
+    <div class="section-label">Dagens schema</div>
+    <div class="schedule" id="schedule-list"></div>
+  </div>
+
+  <!-- Systemkontroller -->
+  <div class="section">
+    <div class="section-label">Systemkontroller</div>
+    <div class="sys-strip" id="sys-list"></div>
+  </div>
+
+  <!-- Uppgifter -->
+  <div class="section">
+    <div class="section-label">Uppgifter idag</div>
+    <div class="task-cards" id="task-list"></div>
+  </div>
+
+  <!-- Framsteg -->
+  <div class="section">
+    <div class="section-label">Dagens framsteg</div>
+    <div class="progress-card">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-row">
+        <span id="progress-text">Laddar...</span>
+        <span id="progress-pct">0%</span>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetDay()">↺ Återställ dagen</button>
+  </div>
+
+</div>
+
+<div class="day-off" id="day-off">
+  <div class="day-off-emoji">☀️</div>
+  <h2>Ledig dag!</h2>
+  <p>Njut av helgen, Bittan.</p>
+</div>
+
+<script>
+const DAYS_SV = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+const MONTHS_SV = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+
+// ─── SCHEMA (samma alla vardagar, men tider justeras) ────────
+
+function getSchedule(weekday) {
+  // mån=1, tis=2 = längre produktionsdagar
+  const isProdDay = weekday === 1 || weekday === 2;
+
+  const items = [
+    { time: '07:00', mins: 420, icon: '🔔', text: 'Morgonstart', sub: 'Bedöm situationen — tilldela leveransgrupper så produktionen kommer igång direkt' },
+    { time: '07:10', mins: 430, icon: '⚙️', text: 'Jobbköer i BC', sub: 'Kontrollera att Norce- och Bitlog-köerna har status "Klar" — inte "fel" eller "stoppad"' },
+    { time: '07:20', mins: 440, icon: '🔢', text: 'BC vs Bitlog — jämför orderantal', sub: 'Stämmer antalet ordrar i BC överens med Bitlog? Avvikelse → Teams till Fredrik' },
+    { time: '09:20', mins: 560, icon: '☕', text: 'Samla alla — 2 min innan frukost', sub: 'Alla samlas hos Bittan och GÅR TILLSAMMANS till rasten kl 09:30' },
+    { time: '09:30', mins: 570, icon: '🚶', text: 'Frukostrast 09:30–09:45', sub: 'Alla tillbaka i arbete exakt 09:45 — inte resa sig upp och börja gå då' },
+    { time: '09:45', mins: 585, icon: '⚙️', text: 'Jobbköer — kontroll efter frukost', sub: 'Snabbkoll att köerna fortfarande har status "Klar" i BC' },
+    { time: '12:20', mins: 740, icon: '🍽️', text: 'Samla alla — 2 min innan lunch', sub: 'Alla samlas hos Bittan och GÅR TILLSAMMANS till rasten kl 12:30' },
+    { time: '12:30', mins: 750, icon: '🚶', text: 'Lunchrast 12:30–13:00', sub: 'Alla tillbaka i arbete exakt 13:00 — inte resa sig upp och börja gå då' },
+    { time: '13:00', mins: 780, icon: '⚙️', text: 'Jobbköer — kontroll efter lunch', sub: 'Snabbkoll att köerna fortfarande har status "Klar" i BC' },
+    { time: '13:10', mins: 790, icon: '📋', text: 'Produktionsläge — ny bedömning', sub: 'Hinner vi med alla ordrar? Behövs prioritering i leveransgrupperna i Zoho Desk?' },
+    { time: '14:00', mins: 840, icon: '🔴', text: 'Kolla av PRIO-gruppen', sub: 'Inget får ligga kvar i PRIO — ta hand om det som finns direkt' },
+    { time: '15:00', mins: 900, icon: '🇳🇴', text: 'Tulldeklaration Norge', sub: 'Förbered tulldok — kontrollera att rätt antal paket ligger på norgepallen' },
+    { time: '15:45', mins: 945, icon: '✅', text: 'Avslut — SAMLA ALLA', sub: 'Alla avslutar på tid — summering och info inför imorgon' },
+  ];
+
+  // Lägg till produktionsdag-notering på mån/tis
+  if (isProdDay) {
+    items[0].sub = 'Produktionsdag — Bittan hjälper till i produktionen i större utsträckning idag';
+  }
+
+  return items;
+}
+
+// ─── SYSTEMKONTROLLER ────────────────────────────────────────
+
+const SYSCHECKS = [
+  { dot: 'dot-red', label: 'Kustom — alla försäljningsorder bokförda?', sub: 'Daglig kontroll att inga ordrar saknas', section: 'sys' },
+  { dot: 'dot-amber', label: 'Zoho Desk — rensa skräppost', sub: 'OBS: kolla att inga riktiga kundärenden hamnat där', section: 'sys' },
+  { dot: 'dot-green', label: 'PostNord kundportal — norska returer', sub: 'Hämta hem returer från Norge (mån, ons, fre)', section: 'sys', days: [1,3,5] },
+  { dot: 'dot-blue', label: 'Nshift — räkna paket på norgepallen', sub: 'Stämmer antal mot listan från Nshift?', section: 'sys' },
+];
+
+// ─── UPPGIFTER PER VECKODAG ───────────────────────────────────
+
+function getDayTasks(weekday) {
+  const tasks = [];
+  const isProdDay = weekday === 1 || weekday === 2;
+
+  // Alltid
+  tasks.push({
+    icon: '📦', title: 'Leveransgrupper & orderprioritering',
+    desc: 'Tilldela rätt personer till PRIO, Benelux och Norge — dessa prioriteras alltid',
+    badge: 'Daglig', badgeClass: 'badge-red'
+  });
+
+  tasks.push({
+    icon: '👁️', title: 'Kontrollrunda — paketering & lådval',
+    desc: 'Rätt kartongstorlek? Lagom fillpack? Rutiner för paketering följs? Håll kostnaderna nere',
+    badge: 'Daglig', badgeClass: 'badge-red'
+  });
+
+  tasks.push({
+    icon: '📧', title: 'Zoho Desk — kundtjänst (förmiddag)',
+    desc: 'Leveransfrågor, reklamationer, hämtordrar. Viktiga ärenden som berör dagens ordrar prioriteras',
+    badge: 'FM', badgeClass: 'badge-blue'
+  });
+
+  tasks.push({
+    icon: '📧', title: 'Zoho Desk — kundtjänst (eftermiddag)',
+    desc: 'Kontrollera om frågor berör order aktuell för dagen. Annars bevaras till imorgon — eller Teams till Fredrik om viktigt',
+    badge: 'EM', badgeClass: 'badge-blue'
+  });
+
+  // Norska returer: mån, ons, fre
+  if ([1,3,5].includes(weekday)) {
+    tasks.push({
+      icon: '🇳🇴', title: 'Norska returer — PostNord kundportalen',
+      desc: 'Hämta hem paket från Norge. Minst tre gånger i veckan.',
+      badge: 'Mån/Ons/Fre', badgeClass: 'badge-amber'
+    });
+  }
+
+  // Onsdag: fastnade ordrar
+  if (weekday === 3) {
+    tasks.push({
+      icon: '🔍', title: 'Fastnade ordrar — onsdagskontroll',
+      desc: 'Jämför orderantal BC vs Bitlog noggrant. Kolla WMS-loggen och webbloggen. Avvikelse → Teams till Fredrik',
+      badge: 'Onsdag', badgeClass: 'badge-amber'
+    });
+  }
+
+  // Torsdag + fredag: kundreturer
+  if ([4,5].includes(weekday)) {
+    tasks.push({
+      icon: '↩️', title: 'Kundreturer — registrering & hantering',
+      desc: 'Registrera löpande. Kontrollera efteråt att de försvunnit från Förs.returordrar i BC. Kvar efter 5 min → meddela Fredrik',
+      badge: 'Tor & Fre', badgeClass: 'badge-amber'
+    });
+  }
+
+  // Produktionsdagar mån/tis
+  if (isProdDay) {
+    tasks.push({
+      icon: '🏭', title: 'Produktionspass — hjälp i lagret',
+      desc: 'Idag är det längre produktionsdag. Bittan hjälper till med plock och paketering i större utsträckning',
+      badge: 'Mån & Tis', badgeClass: 'badge-green'
+    });
+  }
+
+  // Sjukfrånvaro-påminnelse (fredag = bra tillfälle att följa upp)
+  if (weekday === 5) {
+    tasks.push({
+      icon: '🏥', title: 'Personaluppföljning — sjukfrånvaro',
+      desc: 'Har någon varit borta utan att höra av sig denna vecka? Skicka SMS. Sjukskrivning >14 dagar → anmäl FK',
+      badge: 'Fredag', badgeClass: 'badge-amber'
+    });
+  }
+
+  tasks.push({
+    icon: '📊', title: 'Frånvaro & närvaro — löpande underlag',
+    desc: 'Fyll i frånvaro och extratid löpande — lämnas till Ole Petter inför lönekörning',
+    badge: 'Löpande', badgeClass: 'badge-green'
+  });
+
+  return tasks;
+}
+
+// ─── LJUD ────────────────────────────────────────────────────
+
+let audioCtx = null;
+let lastAlertKey = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playCheckSound() {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(1100, ctx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.16, ctx.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+  osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.35);
+}
+
+function playUncheckSound() {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.12);
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+  osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.25);
+}
+
+function playAlertSound() {
+  const ctx = getAudioCtx();
+  [0, 0.22, 0.44].forEach((delay, idx) => {
+    const freqs = [660, 784, 880];
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freqs[idx], ctx.currentTime + delay);
+    gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+    gain.gain.linearRampToValueAtTime(0.14, ctx.currentTime + delay + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.3);
+    osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + 0.3);
+  });
+}
+
+// ─── STATE ────────────────────────────────────────────────────
+
+let state = { sched: {}, sys: {}, tasks: {} };
+
+function getKey() {
+  const d = new Date();
+  return `bd_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+}
+
+function loadState() {
+  try {
+    const s = sessionStorage.getItem(getKey());
+    if (s) state = JSON.parse(s);
+    else state = { sched: {}, sys: {}, tasks: {} };
+  } catch(e) { state = { sched: {}, sys: {}, tasks: {} }; }
+}
+
+function saveState() {
+  try { sessionStorage.setItem(getKey(), JSON.stringify(state)); } catch(e) {}
+}
+
+function resetDay() {
+  state = { sched: {}, sys: {}, tasks: {} };
+  saveState(); render();
+}
+
+function toggleSched(i) {
+  const was = !!state.sched[i];
+  state.sched[i] = !was;
+  was ? playUncheckSound() : playCheckSound();
+  saveState(); render();
+}
+
+function toggleSys(i) {
+  const was = !!state.sys[i];
+  state.sys[i] = !was;
+  was ? playUncheckSound() : playCheckSound();
+  saveState(); render();
+}
+
+function toggleTask(i) {
+  const was = !!state.tasks[i];
+  state.tasks[i] = !was;
+  was ? playUncheckSound() : playCheckSound();
+  saveState(); render();
+}
+
+// ─── KLOCK & ALERTLOGIK ───────────────────────────────────────
+
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = h + ':' + m;
+  checkAlerts(now.getHours() * 60 + now.getMinutes());
+}
+
+function checkAlerts(mins) {
+  const banner = document.getElementById('alert-banner');
+  const alertText = document.getElementById('alert-text');
+
+  const alerts = [
+    { from: 418, to: 428, msg: '⏰ Morgonstart om 2 minuter — dags att sätta igång!' },
+    { from: 558, to: 568, msg: '☕ Samla alla nu — frukostrastet börjar om 2 minuter kl 09:30' },
+    { from: 583, to: 593, msg: '🔔 09:45 — alla ska vara tillbaka i arbete nu!' },
+    { from: 718, to: 728, msg: '🍽️ Samla alla nu — lunchen börjar om 2 minuter kl 12:30' },
+    { from: 838, to: 843, msg: '🔴 PRIO-gruppen ska kollas av kl 14:00 — om 2 minuter!' },
+    { from: 778, to: 785, msg: '🔔 13:00 — alla ska vara tillbaka i arbete nu!' },
+    { from: 898, to: 908, msg: '🇳🇴 Dags att förbereda tulldeklarationen till Norge!' },
+    { from: 943, to: 953, msg: '✅ Avslut om 2 minuter — samla alla kl 15:45' },
+  ];
+
+  const active = alerts.find(a => mins >= a.from && mins <= a.to);
+  if (active) {
+    alertText.textContent = active.msg;
+    const key = active.from;
+    if (!banner.classList.contains('show') || lastAlertKey !== key) {
+      playAlertSound();
+      lastAlertKey = key;
+    }
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+    lastAlertKey = null;
+  }
+}
+
+function getActiveSchedIdx(mins, schedule) {
+  let active = -1;
+  schedule.forEach((s,i) => { if (s.mins <= mins) active = i; });
+  return active;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────
+
+function render() {
+  const now = new Date();
+  const wd = now.getDay(); // 0=sön, 1=mån ... 6=lör
+  const mins = now.getHours() * 60 + now.getMinutes();
+
+  // Datum
+  document.getElementById('date-display').textContent =
+    DAYS_SV[wd] + ' ' + now.getDate() + ' ' + MONTHS_SV[now.getMonth()];
+
+  const isProdDay = wd === 1 || wd === 2;
+  document.getElementById('daytype-display').textContent =
+    isProdDay ? 'Produktionsdag' :
+    (wd === 3 ? 'Onsdag — orderkontroll' :
+    (wd === 5 ? 'Fredag — returer & personal' : 'Vardag'));
+
+  // Helg
+  if (wd === 0 || wd === 6) {
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('day-off').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('day-off').style.display = 'none';
+
+  const schedule = getSchedule(wd);
+  const activeIdx = getActiveSchedIdx(mins, schedule);
+
+  // Schema
+  document.getElementById('schedule-list').innerHTML = schedule.map((s,i) => {
+    const done = !!state.sched[i];
+    const isActive = i === activeIdx && !done;
+    return `<div class="schedule-item ${done?'done':''} ${isActive?'active-now':''}" onclick="toggleSched(${i})">
+      <div class="s-time">${s.time}</div>
+      <div class="s-icon">${s.icon}</div>
+      <div class="s-body">
+        <div class="s-text">${s.text}</div>
+        <div class="s-sub">${s.sub}</div>
+      </div>
+      <div class="check-circle">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+
+  // Systemkontroller — filtrera dagspecifika
+  const syschecks = SYSCHECKS.filter(s => !s.days || s.days.includes(wd));
+  document.getElementById('sys-list').innerHTML = syschecks.map((s,i) => {
+    const done = !!state.sys[i];
+    return `<div class="sys-item ${done?'done':''}" onclick="toggleSys(${i})">
+      <div class="sys-dot ${s.dot}"></div>
+      <div class="s-body">
+        <div class="sys-label">${s.label}</div>
+        <div class="sys-sub">${s.sub}</div>
+      </div>
+      <div class="sys-check">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+
+  // Uppgifter
+  const tasks = getDayTasks(wd);
+  document.getElementById('task-list').innerHTML = tasks.map((t,i) => {
+    const done = !!state.tasks[i];
+    return `<div class="task-card ${done?'done':''}" onclick="toggleTask(${i})">
+      <div class="tc-icon">${t.icon}</div>
+      <div class="tc-body">
+        <div class="tc-title">${t.title}</div>
+        <div class="tc-desc">${t.desc}</div>
+      </div>
+      <span class="tc-badge ${t.badgeClass}">${t.badge}</span>
+    </div>`;
+  }).join('');
+
+  // Framsteg
+  const totalSched = schedule.length;
+  const doneSched = Object.values(state.sched).filter(Boolean).length;
+  const totalSys = syschecks.length;
+  const doneSys = Object.values(state.sys).filter(Boolean).length;
+  const totalTasks = tasks.length;
+  const doneTasks = Object.values(state.tasks).filter(Boolean).length;
+
+  const total = totalSched + totalSys + totalTasks;
+  const done = doneSched + doneSys + doneTasks;
+  const pct = total ? Math.round((done/total)*100) : 0;
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${done} av ${total} avklarade`;
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+loadState();
+render();
+updateClock();
+setInterval(updateClock, 20000);
+setInterval(render, 60000);
+</script>
+</body>
+</html>
