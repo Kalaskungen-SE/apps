@@ -430,7 +430,7 @@ const DAYS_SV = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lörd
 // ─── QA-BANNER ───────────────────────────────────────────────
 async function loadQABanner() {
   try {
-    const res = await fetch('https://kalaskungen-se.github.io/kalaskungen-mission-board-/cs-quality/index.json?_=' + Date.now());
+    const res = await fetch('https://kalaskungen-se.github.io/apps/cs-quality/index.json?_=' + Date.now());
     if (!res.ok) return;
     const entries = await res.json();
     if (!entries || !entries.length) return;
@@ -447,7 +447,7 @@ async function loadQABanner() {
     const stats = `${entry.total} ärenden · ✅ ${entry.good} OK · ⚠️ ${entry.needs_improvement} FÖRBÄTTRA · ❌ ${entry.poor} FEL`;
     document.getElementById('qa-banner-stats').textContent = stats;
     document.getElementById('qa-banner').href =
-      `https://kalaskungen-se.github.io/kalaskungen-mission-board-/cs-quality/${entry.date}.html`;
+      `https://kalaskungen-se.github.io/apps/cs-quality/${entry.date}.html`;
     document.querySelector('.qa-banner .qa-banner-label').textContent = `Kundtjänst QA — ${dateLabel}`;
   } catch(e) { console.warn('QA-banner misslyckades', e); }
 }
