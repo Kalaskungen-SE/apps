@@ -1,0 +1,16 @@
+[
+  {
+    "date": "2026-03-17",
+    "total": 15,
+    "good": 10,
+    "needs_improvement": 5,
+    "poor": 0
+  },
+  {
+    "date": "2026-03-18",
+    "total": 8,
+    "good": 5,
+    "needs_improvement": 3,
+    "poor": 0
+  }
+]
