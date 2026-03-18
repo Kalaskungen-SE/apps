@@ -429,26 +429,30 @@ const DAYS_SV = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lörd
 
 // ─── QA-BANNER ───────────────────────────────────────────────
 async function loadQABanner() {
+  const banner = document.getElementById('qa-banner');
+  if (!banner) return;
+  banner.style.display = 'none'; // dölj tills vi vet att det finns data
   try {
     const res = await fetch('https://kalaskungen-se.github.io/apps/cs-quality/index.json?_=' + Date.now());
     if (!res.ok) return;
     const entries = await res.json();
     if (!entries || !entries.length) return;
-    // Hitta gårdagens datum
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    // Sortera fallande och hitta senaste post som inte är idag
-    const sorted = entries.slice().sort((a,b) => b.date.localeCompare(a.date));
-    const entry = sorted[0]; // senaste rapporten (vanligtvis gårdagen)
-    if (!entry) return;
+    // Sortera fallande, hitta senaste vardagsrapport (max 7 dagar bakåt, ej idag)
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const sorted = entries.slice().sort((a, b) => b.date.localeCompare(a.date));
+    const entry = sorted.find(e => e.date < todayStr);
+    if (!entry) return; // ingen tidigare rapport
+    // Visa bara om rapporten är från senaste 7 dagarna (ingen gammal skräp)
+    const diffDays = (new Date(todayStr) - new Date(entry.date)) / 86400000;
+    if (diffDays > 7) return;
     const d = new Date(entry.date + 'T00:00:00');
     const dayName = DAYS_SV[d.getDay()];
     const dateLabel = `${dayName} ${d.getDate()}/${d.getMonth()+1}`;
     const stats = `${entry.total} ärenden · ✅ ${entry.good} OK · ⚠️ ${entry.needs_improvement} FÖRBÄTTRA · ❌ ${entry.poor} FEL`;
     document.getElementById('qa-banner-stats').textContent = stats;
-    document.getElementById('qa-banner').href =
-      `https://kalaskungen-se.github.io/apps/cs-quality/${entry.date}.html`;
+    banner.href = `https://kalaskungen-se.github.io/apps/cs-quality/${entry.date}.html`;
     document.querySelector('.qa-banner .qa-banner-label').textContent = `Kundtjänst QA — ${dateLabel}`;
+    banner.style.display = 'flex';
   } catch(e) { console.warn('QA-banner misslyckades', e); }
 }
 loadQABanner();
