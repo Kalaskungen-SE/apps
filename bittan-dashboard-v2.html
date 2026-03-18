@@ -98,6 +98,29 @@
   .alert-banner.urgent { background: var(--accent-soft); border-left: 4px solid var(--accent); color: var(--accent); }
   .alert-banner.info { background: var(--amber-soft); border-left: 4px solid var(--amber); color: var(--amber); }
 
+  /* QA-banner */
+  .qa-banner {
+    margin: 14px 14px 0;
+    padding: 13px 16px;
+    border-radius: 10px;
+    background: var(--green-soft);
+    border-left: 4px solid var(--green);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--green);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: opacity 0.15s;
+  }
+  .qa-banner:hover { opacity: 0.82; }
+  .qa-banner-icon { font-size: 20px; flex-shrink: 0; }
+  .qa-banner-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 2px; }
+  .qa-banner-stats { font-size: 15px; font-weight: 600; }
+  .qa-banner-arrow { margin-left: auto; font-size: 18px; opacity: 0.5; flex-shrink: 0; }
+
   /* Section */
   .section { margin: 14px 14px 0; }
 
@@ -349,6 +372,15 @@
   <span id="alert-text"></span>
 </div>
 
+<a class="qa-banner" id="qa-banner" href="#" target="_blank">
+  <span class="qa-banner-icon">🎯</span>
+  <div>
+    <div class="qa-banner-label">Kundtjänst QA — gårdagens rapport</div>
+    <div class="qa-banner-stats" id="qa-banner-stats">Laddar...</div>
+  </div>
+  <span class="qa-banner-arrow">→</span>
+</a>
+
 <div id="main-content">
 
   <!-- Schema -->
@@ -394,6 +426,32 @@
 
 <script>
 const DAYS_SV = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+
+// ─── QA-BANNER ───────────────────────────────────────────────
+async function loadQABanner() {
+  try {
+    const res = await fetch('https://kalaskungen-se.github.io/kalaskungen-mission-board-/cs-quality/index.json?_=' + Date.now());
+    if (!res.ok) return;
+    const entries = await res.json();
+    if (!entries || !entries.length) return;
+    // Hitta gårdagens datum
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    // Sortera fallande och hitta senaste post som inte är idag
+    const sorted = entries.slice().sort((a,b) => b.date.localeCompare(a.date));
+    const entry = sorted[0]; // senaste rapporten (vanligtvis gårdagen)
+    if (!entry) return;
+    const d = new Date(entry.date + 'T00:00:00');
+    const dayName = DAYS_SV[d.getDay()];
+    const dateLabel = `${dayName} ${d.getDate()}/${d.getMonth()+1}`;
+    const stats = `${entry.total} ärenden · ✅ ${entry.good} OK · ⚠️ ${entry.needs_improvement} FÖRBÄTTRA · ❌ ${entry.poor} FEL`;
+    document.getElementById('qa-banner-stats').textContent = stats;
+    document.getElementById('qa-banner').href =
+      `https://kalaskungen-se.github.io/kalaskungen-mission-board-/cs-quality/${entry.date}.html`;
+    document.querySelector('.qa-banner .qa-banner-label').textContent = `Kundtjänst QA — ${dateLabel}`;
+  } catch(e) { console.warn('QA-banner misslyckades', e); }
+}
+loadQABanner();
 const MONTHS_SV = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
 
 // ─── SCHEMA (samma alla vardagar, men tider justeras) ────────
