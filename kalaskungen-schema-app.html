@@ -24,14 +24,13 @@
     /* ─── HEADER ─── */
     header {
       background: var(--red); color: #fff;
-      padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+      padding: 14px 20px; display: flex; align-items: center; justify-content: center;
       position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    header .logo { font-size: 24px; }
-    header .titles h1 { font-size: 17px; font-weight: 700; }
-    header .titles p  { font-size: 12px; opacity: 0.8; }
-    header .spacer { flex: 1; }
+    header .logo { font-size: 24px; margin-right: 10px; }
+    header .titles h1 { font-size: 18px; font-weight: 700; }
+    header .spacer { display: none; }
     .hbtn {
       background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);
       color: #fff; padding: 6px 13px; border-radius: 7px; cursor: pointer;
@@ -88,8 +87,14 @@
       padding: 18px 10px; text-align: center; cursor: pointer;
       font-size: 15px; font-weight: 700; transition: all .18s;
     }
-    .emp-btn .avatar { font-size: 28px; margin-bottom: 6px; display: block; }
+    .emp-btn .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 800; color: #fff;
+      margin: 0 auto 8px;
+    }
     .emp-btn:hover { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+    .emp-btn:hover .avatar { filter: brightness(1.1); }
 
     /* ─── CONTROLS ─── */
     #controls {
@@ -257,10 +262,7 @@
   <div class="logo">🎉</div>
   <div class="titles">
     <h1>Kalaskungen – Schema</h1>
-    <p id="fileLabel">Ladda in Excel-filen för att börja</p>
   </div>
-  <div class="spacer"></div>
-  <button class="hbtn" onclick="document.getElementById('fileIn').click()">📂 Byt fil</button>
   <input type="file" id="fileIn" accept=".xlsx,.xls,.xlsm" style="display:none" onchange="handleFile(event)">
 </header>
 
@@ -326,7 +328,15 @@ const SV_MONTH_MAP    = {
   nov:11,november:11,dec:12,december:12
 };
 const WEEKDAY_ORDER = ['måndag','tisdag','onsdag','torsdag','fredag'];
-const AVATARS       = ['🧑','👩','🧑‍🦱','👱','👩‍🦰','🧔','👩‍🦳','🧑‍🦲'];
+// Färger per person för initialcirklar
+const AVATAR_COLORS = {
+  'Bittan':    '#7c3aed',  // lila
+  'Susan':     '#dc2626',  // röd
+  'Emma':      '#0369a1',  // blå
+  'Jessica':   '#059669',  // grön
+  'Sussie':    '#9d174d',  // rosa/cerise
+  'Sebastian': '#374151',  // mörkgrå
+};
 
 const EMP_COLORS = [
   {bg:'#dbeafe',text:'#1e40af'},
@@ -362,7 +372,6 @@ let teamOpen     = true;
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     loadMsg.textContent = 'Läser in schemat…';
     const buffer = await resp.arrayBuffer();
-    document.getElementById('fileLabel').textContent = 'SCHEMA KALASKUNGEN CLAUDE MASTER.xlsx';
     document.getElementById('loadingScreen').style.display = 'none';
     parseExcel(buffer);
   } catch (err) {
@@ -569,7 +578,9 @@ function showWhoScreen(){
   employees.forEach((emp,i) => {
     const btn = document.createElement('div');
     btn.className = 'emp-btn';
-    btn.innerHTML = `<span class="avatar">${AVATARS[i % AVATARS.length]}</span>${emp}`;
+    const color = AVATAR_COLORS[emp] || EMP_COLORS[i % EMP_COLORS.length].text;
+    const initials = emp.slice(0,2).toUpperCase();
+    btn.innerHTML = `<div class="avatar" style="background:${color}">${initials}</div>${emp}`;
     btn.onclick = () => startAsEmployee(emp);
     grid.appendChild(btn);
   });
