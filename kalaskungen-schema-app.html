@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalaskungen – Schema</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --red:       #e63946;
+      --red-dark:  #c1121f;
+      --red-soft:  #fde8ea;
+      --bg:        #f0f2f5;
+      --white:     #ffffff;
+      --text:      #1c1c2e;
+      --muted:     #6b7280;
+      --border:    #e5e7eb;
+      --radius:    10px;
+      --shadow:    0 2px 12px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ─── HEADER ─── */
+    header {
+      background: var(--red); color: #fff;
+      padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header .logo { font-size: 24px; }
+    header .titles h1 { font-size: 17px; font-weight: 700; }
+    header .titles p  { font-size: 12px; opacity: 0.8; }
+    header .spacer { flex: 1; }
+    .hbtn {
+      background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);
+      color: #fff; padding: 6px 13px; border-radius: 7px; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: background .15s;
+    }
+    .hbtn:hover { background: rgba(255,255,255,0.3); }
+
+    /* ─── UPLOAD ─── */
+    /* ─── LOADING ─── */
+    #loadingScreen {
+      max-width: 400px; margin: 80px auto; text-align: center; padding: 0 20px;
+    }
+    .spinner-wrap { margin-bottom: 24px; }
+    .spinner {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 5px solid var(--red-soft);
+      border-top-color: var(--red);
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .loading-sub   { font-size: 14px; color: var(--muted); }
+    .load-error-box {
+      background: #fff; border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px 24px; margin-top: 20px;
+    }
+    .load-error-box p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+    #uploadArea { max-width: 500px; margin: 60px auto; padding: 0 20px; display: none; }
+    .drop-zone {
+      background: #fff; border: 2px dashed var(--red); border-radius: 16px;
+      padding: 50px 32px; text-align: center; cursor: pointer; transition: all .2s;
+    }
+    .drop-zone.drag-over { background: var(--red-soft); }
+    .drop-zone .icon { font-size: 48px; margin-bottom: 12px; }
+    .drop-zone h2 { font-size: 20px; color: var(--red); margin-bottom: 6px; }
+    .drop-zone p  { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .btn-red {
+      background: var(--red); color: #fff; border: none;
+      padding: 11px 26px; border-radius: 8px; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-red:hover { background: var(--red-dark); }
+    .drop-zone .hint { margin-top: 14px; font-size: 12px; color: #bbb; }
+
+    /* ─── WHO ARE YOU ─── */
+    #whoScreen { display: none; max-width: 520px; margin: 50px auto; padding: 0 20px; }
+    #whoScreen h2 { font-size: 22px; text-align: center; margin-bottom: 8px; }
+    #whoScreen p  { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+    .emp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .emp-btn {
+      background: #fff; border: 2px solid var(--border); border-radius: 12px;
+      padding: 18px 10px; text-align: center; cursor: pointer;
+      font-size: 15px; font-weight: 700; transition: all .18s;
+    }
+    .emp-btn .avatar { font-size: 28px; margin-bottom: 6px; display: block; }
+    .emp-btn:hover { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+
+    /* ─── CONTROLS ─── */
+    #controls {
+      display: none; background: #fff; border-bottom: 1px solid var(--border);
+      padding: 10px 20px; gap: 10px; align-items: center; flex-wrap: wrap;
+      box-shadow: var(--shadow); position: sticky; top: 56px; z-index: 99;
+    }
+    #controls.show { display: flex; }
+    .nav-btn {
+      border: 1px solid var(--border); background: #fff;
+      padding: 6px 13px; border-radius: 7px; cursor: pointer;
+      font-size: 15px; color: var(--text); transition: all .15s;
+    }
+    .nav-btn:hover { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+    #periodLabel { font-size: 15px; font-weight: 700; min-width: 195px; text-align: center; }
+    .view-toggle { display: flex; margin-left: auto; }
+    .vbtn {
+      padding: 6px 15px; border: 1px solid var(--border); background: #fff;
+      cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: all .15s;
+    }
+    .vbtn:first-child { border-radius: 7px 0 0 7px; }
+    .vbtn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
+    .vbtn.active { background: var(--red); color: #fff; border-color: var(--red); }
+    #empSel {
+      border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 10px; font-size: 13px; background: #fff; cursor: pointer;
+    }
+
+    /* ─── MAIN LAYOUT ─── */
+    #app { display: none; padding: 16px 20px; max-width: 1400px; margin: 0 auto; gap: 16px; }
+    #app.show { display: flex; flex-direction: column; }
+
+    /* ─── MY SCHEDULE CARD ─── */
+    .my-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .my-card-header {
+      background: var(--red); color: #fff; padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .my-card-header .who { font-size: 18px; font-weight: 800; }
+    .my-card-header .wk  { font-size: 13px; opacity: 0.85; }
+    .my-card-body { display: flex; gap: 0; }
+
+    /* Days list */
+    .days-list { flex: 1; padding: 0; }
+    .day-row {
+      display: flex; align-items: center;
+      padding: 12px 18px; border-bottom: 1px solid var(--border);
+      gap: 14px;
+    }
+    .day-row:last-child { border-bottom: none; }
+    .day-row.today-row { background: #fffbea; }
+    .day-row .day-label { width: 90px; }
+    .day-label strong { display: block; font-size: 14px; }
+    .day-label span   { font-size: 12px; color: var(--muted); }
+    .day-label .hol   { font-size: 11px; color: var(--red); font-style: italic; }
+    .shift-badge {
+      display: inline-block; padding: 5px 14px; border-radius: 20px;
+      font-size: 13px; font-weight: 700;
+    }
+    .shift-off  { background: #f3f4f6; color: #9ca3af; }
+    .shift-work { background: #d1fae5; color: #065f46; }
+    .shift-none { color: #d1d5db; font-size: 20px; }
+
+    /* Tidbank panel */
+    .tidbank-panel {
+      width: 180px; border-left: 1px solid var(--border);
+      padding: 20px 18px; display: flex; flex-direction: column; justify-content: center; gap: 20px;
+    }
+    .tb-item { text-align: center; }
+    .tb-item .tb-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .tb-item .tb-value { font-size: 26px; font-weight: 800; }
+    .tb-pos { color: #059669; }
+    .tb-neg { color: #dc2626; }
+    .tb-zero{ color: var(--muted); }
+
+    /* ─── TEAM TABLE ─── */
+    .team-section { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .team-header {
+      padding: 12px 18px; border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 700; color: var(--muted);
+      display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+    }
+    .team-header:hover { background: var(--bg); }
+    .team-header .toggle-icon { margin-left: auto; transition: transform .2s; }
+    .team-header.open .toggle-icon { transform: rotate(180deg); }
+    .team-body { overflow-x: auto; }
+    .team-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .team-table th {
+      background: var(--bg); color: var(--muted);
+      padding: 8px 12px; text-align: left; font-size: 12px; font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+    .team-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+    .team-table tr:last-child td { border-bottom: none; }
+    .team-table tr.me-row td { background: #fffbea; font-weight: 700; }
+    .team-table tr.me-row td:first-child { border-left: 3px solid var(--red); }
+    .mini-pill {
+      display: inline-block; padding: 3px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 700; white-space: nowrap; margin: 1px;
+    }
+    .mini-off  { background: #f3f4f6; color: #9ca3af; }
+
+    /* ─── MONTH VIEW ─── */
+    .month-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .month-emp-header {
+      background: var(--red); color: #fff; padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .month-emp-header span { font-size: 17px; font-weight: 800; }
+    .month-grid-wrap { overflow-x: auto; }
+    .month-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    .month-col-head {
+      background: var(--bg); text-align: center; padding: 8px;
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .month-col-head-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+    }
+    .m-day {
+      min-height: 80px; padding: 6px; border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .m-day:nth-child(5n) { border-right: none; }
+    .m-day.m-empty { background: var(--bg); opacity: 0.4; }
+    .m-day.m-today { background: #fffbea; }
+    .m-num {
+      font-size: 12px; font-weight: 700; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center; border-radius: 50%;
+      margin-bottom: 4px;
+    }
+    .m-today .m-num { background: var(--red); color: #fff; }
+    .m-shift { font-size: 11px; font-weight: 700; padding: 2px 5px; border-radius: 4px; }
+
+    /* Tidbank month table */
+    .tb-month-table { width: 100%; border-collapse: collapse; }
+    .tb-month-table th { background: var(--bg); padding: 8px 14px; font-size: 12px; font-weight: 700; color: var(--muted); text-align: left; border-bottom: 1px solid var(--border); }
+    .tb-month-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .tb-month-table tr:last-child td { border-bottom: none; }
+
+    /* ─── ERROR ─── */
+    .err { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 14px 18px; color: #7f1d1d; font-size: 14px; margin-bottom: 16px; }
+
+    @media print {
+      header, #controls { display: none !important; }
+      #app { display: flex !important; }
+    }
+    @media (max-width: 650px) {
+      .tidbank-panel { width: 120px; padding: 14px 10px; }
+      .tb-item .tb-value { font-size: 20px; }
+      .emp-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">🎉</div>
+  <div class="titles">
+    <h1>Kalaskungen – Schema</h1>
+    <p id="fileLabel">Ladda in Excel-filen för att börja</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="hbtn" onclick="document.getElementById('fileIn').click()">📂 Byt fil</button>
+  <input type="file" id="fileIn" accept=".xlsx,.xls,.xlsm" style="display:none" onchange="handleFile(event)">
+</header>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="spinner-wrap"><div class="spinner"></div></div>
+  <div class="loading-title">Hämtar schemat…</div>
+  <div class="loading-sub" id="loadingMsg">Ansluter till GitHub</div>
+</div>
+
+<!-- UPLOAD (fallback) -->
+<div id="uploadArea">
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">📊</div>
+    <h2>Öppna schemat</h2>
+    <p>Dra och släpp din Excel-fil hit, eller välj den manuellt.</p>
+    <button class="btn-red" onclick="document.getElementById('fileIn').click()">Välj Excel-fil</button>
+    <p class="hint">Filen stannar i din webbläsare – inget laddas upp</p>
+  </div>
+</div>
+
+<!-- WHO ARE YOU -->
+<div id="whoScreen">
+  <h2>👋 Vem är du?</h2>
+  <p>Välj ditt namn för att se ditt schema.</p>
+  <div class="emp-grid" id="whoGrid"></div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="nav-btn" onclick="navigate(-1)">◀</button>
+  <span id="periodLabel">–</span>
+  <button class="nav-btn" onclick="navigate(1)">▶</button>
+  <button class="nav-btn" onclick="goToday()">📅 Idag</button>
+  <select id="empSel" onchange="changeEmployee(this.value)"></select>
+  <div class="view-toggle">
+    <button class="vbtn active" id="btnWeek"  onclick="setView('week')">Vecka</button>
+    <button class="vbtn"        id="btnMonth" onclick="setView('month')">Månad</button>
+  </div>
+  <button class="nav-btn" onclick="window.print()">🖨️</button>
+</div>
+
+<!-- APP -->
+<div id="app"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const GITHUB_EXCEL_URL =
+  'https://raw.githubusercontent.com/Kalaskungen-SE/apps/main/SCHEMA%20KALASKUNGEN%20CLAUDE%20MASTER.xlsx';
+
+// ══════════════════════════════════════════
+// LOOKUP TABLES
+// ══════════════════════════════════════════
+const SV_MONTHS_FULL  = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+const SV_MONTHS_SHORT = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+const SV_DAYS_FULL    = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag'];
+const SV_MONTH_MAP    = {
+  jan:1,januari:1,feb:2,februari:2,mar:3,mars:3,
+  apr:4,april:4,maj:5,jun:6,juni:6,jul:7,juli:7,
+  aug:8,augusti:8,sep:9,september:9,okt:10,oktober:10,
+  nov:11,november:11,dec:12,december:12
+};
+const WEEKDAY_ORDER = ['måndag','tisdag','onsdag','torsdag','fredag'];
+const AVATARS       = ['🧑','👩','🧑‍🦱','👱','👩‍🦰','🧔','👩‍🦳','🧑‍🦲'];
+
+const EMP_COLORS = [
+  {bg:'#dbeafe',text:'#1e40af'},
+  {bg:'#d1fae5',text:'#065f46'},
+  {bg:'#ede9fe',text:'#5b21b6'},
+  {bg:'#fef3c7',text:'#92400e'},
+  {bg:'#fce7f3',text:'#9d174d'},
+  {bg:'#cffafe',text:'#164e63'},
+  {bg:'#fee2e2',text:'#991b1b'},
+  {bg:'#f0fdf4',text:'#14532d'},
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let scheduleData = [];  // {date, dateStr, weekNum, employee, shift, isOff, holidayNote}
+let tidbankData  = {};  // {weekNum: {employee: {saldo, total}}}
+let employees    = [];
+let colorMap     = {};
+let currentEmp   = '';
+let currentDate  = new Date();
+let currentView  = 'week';
+let teamOpen     = true;
+
+// ══════════════════════════════════════════
+// AUTO-LOAD FROM GITHUB ON STARTUP
+// ══════════════════════════════════════════
+(async function autoLoad() {
+  const loadMsg = document.getElementById('loadingMsg');
+  try {
+    loadMsg.textContent = 'Hämtar schemafilen från GitHub…';
+    const resp = await fetch(GITHUB_EXCEL_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    loadMsg.textContent = 'Läser in schemat…';
+    const buffer = await resp.arrayBuffer();
+    document.getElementById('fileLabel').textContent = 'SCHEMA KALASKUNGEN CLAUDE MASTER.xlsx';
+    document.getElementById('loadingScreen').style.display = 'none';
+    parseExcel(buffer);
+  } catch (err) {
+    // GitHub fetch failed → fall back to manual upload
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'block';
+    console.warn('Auto-load failed, falling back to manual upload:', err);
+  }
+})();
+
+// ══════════════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════════════
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if(f) processFile(f);
+});
+function handleFile(e){ const f = e.target.files[0]; if(f) processFile(f); }
+
+function processFile(file){
+  document.getElementById('fileLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => parseExcel(ev.target.result);
+  reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════
+// EXCEL PARSING
+// ══════════════════════════════════════════
+function safeStr(v){ return (v == null || v === undefined) ? '' : String(v).trim(); }
+
+function parseExcel(buffer){
+  try {
+    const wb   = XLSX.read(buffer, { type:'array', cellDates:false, raw:false });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    // defval:'' ensures no undefined — every cell gets at least ''
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:false, defval:'' });
+
+    const { schedule, tidbank, emps } = parseKalaskungenRows(rows);
+
+    if(!schedule.length){
+      showError('Kunde inte hitta schemadat i filen. Kontrollera att rätt Excel-fil valdes.');
+      return;
+    }
+
+    scheduleData = schedule;
+    tidbankData  = tidbank;
+    employees    = emps;
+    employees.forEach((e,i) => colorMap[e] = EMP_COLORS[i % EMP_COLORS.length]);
+
+    // Find closest date
+    const todayStr = fmtKey(new Date());
+    const hasToday = schedule.some(r => r.dateStr === todayStr);
+    if(!hasToday && schedule.length){
+      currentDate = schedule.reduce((best, r) =>
+        Math.abs(r.date - new Date()) < Math.abs(best.date - new Date()) ? r : best
+      ).date;
+    }
+
+    // Show "who are you?" screen
+    document.getElementById('uploadArea').style.display = 'none';
+    showWhoScreen();
+
+  } catch(err){
+    showError('Fel vid inläsning: ' + err.message);
+    console.error(err);
+  }
+}
+
+function parseKalaskungenRows(rows){
+  const schedule = [];
+  const tidbank  = {};  // { 'weekNum-year': { empName: {saldo, total} } }
+  const empSet   = [];
+
+  let empCols    = [];  // [{shiftIdx, bankIdx, name}]
+  let weekMonday = null;
+  let weekNum    = null;
+
+  for(let r = 0; r < rows.length; r++){
+    const row = rows[r] || [];
+    const c0  = safeStr(row[0]);
+    if(!c0) continue;
+
+    // ── Week header ──
+    const wm = c0.match(/^Vecka\s+(\d+)\s*\((.+)\)/i);
+    if(wm){
+      weekNum    = parseInt(wm[1]);
+      weekMonday = parseWeekStart(safeStr(wm[2]), weekNum);
+
+      // Detect employee columns
+      const det = [];
+      for(let c = 0; c < row.length - 1; c++){
+        const v = safeStr(row[c]);
+        const nxt = safeStr(row[c+1]);
+        // Employee = non-empty string that isn't 'Tid' or a number, followed by 'Tid'
+        if(v && v !== 'Tid' && nxt === 'Tid' && !/^\d/.test(v) && v.length > 1){
+          det.push({ shiftIdx: c, bankIdx: c+1, name: v });
+        }
+      }
+      if(det.length > 0){
+        empCols = det;
+        det.forEach(d => { if(!empSet.includes(d.name)) empSet.push(d.name); });
+      }
+      continue;
+    }
+
+    // ── Veckans saldo ──
+    if(c0.toLowerCase().startsWith('veckans saldo') && weekNum !== null && empCols.length){
+      const key = weekNum + '-' + (weekMonday ? weekMonday.getFullYear() : 'x');
+      if(!tidbank[key]) tidbank[key] = {};
+      empCols.forEach(({bankIdx, name}) => {
+        const v = safeStr(row[bankIdx]);
+        const n = v !== '' ? parseFloat(v) : null;
+        if(!tidbank[key][name]) tidbank[key][name] = {};
+        tidbank[key][name].saldo = n;
+      });
+      continue;
+    }
+
+    // ── Totalt i banken ──
+    if(c0.toLowerCase().startsWith('totalt i banken') && weekNum !== null && empCols.length){
+      const key = weekNum + '-' + (weekMonday ? weekMonday.getFullYear() : 'x');
+      if(!tidbank[key]) tidbank[key] = {};
+      empCols.forEach(({bankIdx, name}) => {
+        const v = safeStr(row[bankIdx]);
+        const n = v !== '' ? parseFloat(v) : null;
+        if(!tidbank[key][name]) tidbank[key][name] = {};
+        tidbank[key][name].total = n;
+      });
+      continue;
+    }
+
+    // ── Weekday row ──
+    if(weekMonday && empCols.length){
+      const c0lower = c0.toLowerCase();
+      const dayIdx  = WEEKDAY_ORDER.findIndex(d => c0lower.startsWith(d));
+      if(dayIdx !== -1){
+        const date = new Date(weekMonday);
+        date.setDate(weekMonday.getDate() + dayIdx);
+        const holidayMatch = c0.match(/\((.+)\)/);
+        const holidayNote  = holidayMatch ? holidayMatch[1] : null;
+
+        empCols.forEach(({shiftIdx, name}) => {
+          const raw   = safeStr(row[shiftIdx]);
+          const isOff = !raw || raw === '0' || raw.toLowerCase() === 'ledig';
+          schedule.push({
+            date, dateStr: fmtKey(date), weekNum,
+            employee: name,
+            shift:    isOff ? 'Ledig' : raw,
+            isOff, holidayNote
+          });
+        });
+      }
+    }
+  }
+
+  return { schedule, tidbank, emps: empSet };
+}
+
+// ── Parse "2-6 mars" / "30 mars-3 april" / "31 aug-4 sep" → Monday Date ──
+function parseWeekStart(str, isoWeek){
+  if(!str) return null;
+  str = str.trim();
+  let day = 0, month = 0;
+  // "D-D månad" same month
+  let m = str.match(/^(\d+)-\d+\s+([a-zåäö]+)/i);
+  if(m){ day = parseInt(m[1]); month = SV_MONTH_MAP[m[2].toLowerCase()] || 0; }
+  // "D månad-..." cross month
+  if(!month){ m = str.match(/^(\d+)\s+([a-zåäö]+)/i); if(m){ day=parseInt(m[1]); month=SV_MONTH_MAP[m[2].toLowerCase()]||0; } }
+  if(!day || !month) return null;
+  return buildDate(day, month, isoWeek);
+}
+
+function buildDate(day, month, isoWeek){
+  const yr = new Date().getFullYear();
+  for(const y of [yr, yr+1, yr-1]){
+    try{
+      const d = new Date(y, month-1, day);
+      if(!isNaN(d) && getISOWeek(d) === isoWeek) return d;
+    }catch(e){}
+  }
+  return new Date(new Date().getFullYear(), month-1, day);
+}
+
+function getISOWeek(d){
+  const dt = new Date(d); dt.setHours(0,0,0,0);
+  dt.setDate(dt.getDate() + 3 - (dt.getDay()+6)%7);
+  const w1 = new Date(dt.getFullYear(),0,4);
+  return 1 + Math.round(((dt-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7);
+}
+
+function fmtKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function pad(n){ return String(n).padStart(2,'0'); }
+
+// ══════════════════════════════════════════
+// WHO ARE YOU SCREEN
+// ══════════════════════════════════════════
+function showWhoScreen(){
+  const grid = document.getElementById('whoGrid');
+  grid.innerHTML = '';
+  employees.forEach((emp,i) => {
+    const btn = document.createElement('div');
+    btn.className = 'emp-btn';
+    btn.innerHTML = `<span class="avatar">${AVATARS[i % AVATARS.length]}</span>${emp}`;
+    btn.onclick = () => startAsEmployee(emp);
+    grid.appendChild(btn);
+  });
+  document.getElementById('whoScreen').style.display = 'block';
+}
+
+function startAsEmployee(emp){
+  currentEmp = emp;
+  document.getElementById('whoScreen').style.display = 'none';
+  document.getElementById('controls').classList.add('show');
+  document.getElementById('app').classList.add('show');
+
+  // Populate employee select
+  const sel = document.getElementById('empSel');
+  sel.innerHTML = '';
+  employees.forEach(e => {
+    const o = document.createElement('option');
+    o.value = e; o.textContent = e;
+    if(e === emp) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  renderView();
+}
+
+function changeEmployee(emp){ currentEmp = emp; renderView(); }
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navigate(dir){
+  if(currentView === 'week') currentDate = new Date(currentDate.getTime() + dir*7*86400000);
+  else currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+dir, 1);
+  renderView();
+}
+function goToday(){ currentDate = new Date(); renderView(); }
+function setView(v){
+  currentView = v;
+  document.getElementById('btnWeek').classList.toggle('active', v==='week');
+  document.getElementById('btnMonth').classList.toggle('active', v==='month');
+  renderView();
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderView(){ currentView === 'week' ? renderWeek() : renderMonth(); }
+
+// ─── WEEK VIEW ───
+function renderWeek(){
+  const dow    = currentDate.getDay();
+  const monday = new Date(currentDate);
+  monday.setDate(currentDate.getDate() - (dow===0 ? 6 : dow-1));
+  const friday = new Date(monday); friday.setDate(monday.getDate()+4);
+  const wn     = getISOWeek(monday);
+  const yr     = monday.getFullYear();
+
+  const mStr = `${monday.getDate()} ${SV_MONTHS_SHORT[monday.getMonth()]}`;
+  const fStr = `${friday.getDate()} ${SV_MONTHS_SHORT[friday.getMonth()]} ${yr}`;
+  document.getElementById('periodLabel').textContent = `Vecka ${wn}  ·  ${mStr}–${fStr}`;
+
+  const today = fmtKey(new Date());
+  const tbKey = `${wn}-${yr}`;
+  const myTB  = (tidbankData[tbKey] || {})[currentEmp] || {};
+  const col   = colorMap[currentEmp] || EMP_COLORS[0];
+
+  // ── My schedule card ──
+  let daysHtml = '';
+  for(let d=0; d<5; d++){
+    const day     = new Date(monday); day.setDate(monday.getDate()+d);
+    const dStr    = fmtKey(day);
+    const entry   = scheduleData.find(r => r.dateStr===dStr && r.employee===currentEmp);
+    const isToday = dStr === today;
+    const hol     = entry?.holidayNote ?? null;
+    let badge = `<span class="shift-none">–</span>`;
+    if(entry){
+      badge = entry.isOff
+        ? `<span class="shift-badge shift-off">Ledig</span>`
+        : `<span class="shift-badge shift-work" style="background:${col.bg};color:${col.text}">${entry.shift}</span>`;
+    }
+    daysHtml += `
+      <div class="day-row${isToday?' today-row':''}">
+        <div class="day-label">
+          <strong>${SV_DAYS_FULL[d]}</strong>
+          <span>${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}</span>
+          ${hol?`<span class="hol">📅 ${hol}</span>`:''}
+        </div>
+        ${badge}
+      </div>`;
+  }
+
+  const saldo = myTB.saldo ?? null;
+  const total = myTB.total ?? null;
+  const tbHtml = `
+    <div class="tidbank-panel">
+      <div class="tb-item">
+        <div class="tb-label">Saldo v.${wn}</div>
+        <div class="tb-value ${tbClass(saldo)}">${saldo!==null ? fmtH(saldo) : '–'}</div>
+      </div>
+      <div style="border-top:1px solid var(--border)"></div>
+      <div class="tb-item">
+        <div class="tb-label">Totalt i bank</div>
+        <div class="tb-value ${tbClass(total)}">${total!==null ? fmtH(total) : '–'}</div>
+      </div>
+    </div>`;
+
+  // ── Team table ──
+  const teamRows = employees.map(emp => {
+    const isMe = emp === currentEmp;
+    const ec   = colorMap[emp] || EMP_COLORS[0];
+    let cells  = `<td style="font-weight:${isMe?'700':'400'}">${isMe?'👉 ':''} ${emp}</td>`;
+    for(let d=0; d<5; d++){
+      const day   = new Date(monday); day.setDate(monday.getDate()+d);
+      const entry = scheduleData.find(r => r.dateStr===fmtKey(day) && r.employee===emp);
+      if(!entry)
+        cells += `<td style="color:#d1d5db">–</td>`;
+      else if(entry.isOff)
+        cells += `<td><span class="mini-pill mini-off">Ledig</span></td>`;
+      else
+        cells += `<td><span class="mini-pill" style="background:${ec.bg};color:${ec.text}">${entry.shift}</span></td>`;
+    }
+    // Add tidbank cols
+    const empTB = (tidbankData[tbKey]||{})[emp] || {};
+    cells += `<td class="${tbClass(empTB.saldo??null)}" style="font-weight:700;text-align:center">${empTB.saldo!=null?fmtH(empTB.saldo):'–'}</td>`;
+    cells += `<td class="${tbClass(empTB.total??null)}" style="font-weight:700;text-align:center">${empTB.total!=null?fmtH(empTB.total):'–'}</td>`;
+    return `<tr class="${isMe?'me-row':''}">${cells}</tr>`;
+  }).join('');
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="my-card">
+      <div class="my-card-header">
+        <span class="who">🗓 ${currentEmp}</span>
+        <span class="wk">Vecka ${wn}</span>
+      </div>
+      <div class="my-card-body">
+        <div class="days-list">${daysHtml}</div>
+        ${tbHtml}
+      </div>
+    </div>
+
+    <div class="team-section">
+      <div class="team-header ${teamOpen?'open':''}" onclick="toggleTeam(this)">
+        👥 Teamet denna vecka
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="team-body" id="teamBody" style="display:${teamOpen?'block':'none'}">
+        <table class="team-table">
+          <thead><tr>
+            <th style="width:130px">Namn</th>
+            <th>Måndag</th><th>Tisdag</th><th>Onsdag</th><th>Torsdag</th><th>Fredag</th>
+            <th style="text-align:center">Saldo v.${wn}</th>
+            <th style="text-align:center">Totalt bank</th>
+          </tr></thead>
+          <tbody>${teamRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function toggleTeam(el){
+  teamOpen = !teamOpen;
+  el.classList.toggle('open', teamOpen);
+  document.getElementById('teamBody').style.display = teamOpen ? 'block' : 'none';
+}
+
+// ─── MONTH VIEW ───
+function renderMonth(){
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth();
+  document.getElementById('periodLabel').textContent = `${SV_MONTHS_FULL[m]} ${y}`;
+
+  const today  = fmtKey(new Date());
+  const col    = colorMap[currentEmp] || EMP_COLORS[0];
+
+  // Collect Mon–Fri this month
+  const allDays = [];
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  for(let d=1; d<=daysInMonth; d++){
+    const date = new Date(y,m,d);
+    const dow  = date.getDay();
+    if(dow >= 1 && dow <= 5) allDays.push(date);
+  }
+
+  // Group into ISO-weeks
+  const weeks = [];
+  let curW = null;
+  allDays.forEach(date => {
+    const wn = getISOWeek(date);
+    if(!curW || curW.wn !== wn){ curW = {wn, days:[]}; weeks.push(curW); }
+    curW.days.push(date);
+  });
+
+  // Build schedule calendar
+  let calHtml = '<div class="month-col-head-grid">';
+  SV_DAYS_FULL.forEach(d => calHtml += `<div class="month-col-head">${d}</div>`);
+  calHtml += '</div>';
+
+  weeks.forEach(wg => {
+    calHtml += '<div class="month-grid">';
+    const firstDow = wg.days[0].getDay();
+    for(let p=1; p<firstDow; p++) calHtml += '<div class="m-day m-empty"></div>';
+    wg.days.forEach(date => {
+      const dStr    = fmtKey(date);
+      const isToday = dStr === today;
+      const entry   = scheduleData.find(r => r.dateStr===dStr && r.employee===currentEmp);
+      let shiftHtml = '';
+      if(entry && !entry.isOff)
+        shiftHtml = `<span class="m-shift" style="background:${col.bg};color:${col.text}">${entry.shift}</span>`;
+      else if(entry && entry.isOff)
+        shiftHtml = `<span class="m-shift" style="background:#f3f4f6;color:#9ca3af">Ledig</span>`;
+      calHtml += `<div class="m-day${isToday?' m-today':''}">
+        <div class="m-num">${date.getDate()}</div>${shiftHtml}</div>`;
+    });
+    const lastDow = wg.days[wg.days.length-1].getDay();
+    for(let p=lastDow; p<5; p++) calHtml += '<div class="m-day m-empty"></div>';
+    calHtml += '</div>';
+  });
+
+  // Build tidbank table for the month
+  const monthWeeks = weeks.map(wg => {
+    const tbKey = `${wg.wn}-${y}`;
+    const tb    = (tidbankData[tbKey]||{})[currentEmp] || {};
+    return { wn: wg.wn, ...tb };
+  });
+
+  let tbRows = monthWeeks.map(w => `
+    <tr>
+      <td><strong>Vecka ${w.wn}</strong></td>
+      <td class="${tbClass(w.saldo??null)}" style="font-weight:700">${w.saldo!=null?fmtH(w.saldo):'–'}</td>
+      <td class="${tbClass(w.total??null)}" style="font-weight:700">${w.total!=null?fmtH(w.total):'–'}</td>
+    </tr>`).join('');
+
+  document.getElementById('app').innerHTML = `
+    <div class="month-card">
+      <div class="month-emp-header">
+        <span>🗓 ${currentEmp} — ${SV_MONTHS_FULL[m]} ${y}</span>
+      </div>
+      <div class="month-grid-wrap">${calHtml}</div>
+    </div>
+
+    <div class="team-section">
+      <div class="team-header" style="cursor:default">🏦 Tidbank — ${SV_MONTHS_FULL[m]}</div>
+      <div>
+        <table class="tb-month-table">
+          <thead><tr><th>Vecka</th><th>Saldo denna vecka</th><th>Totalt i bank</th></tr></thead>
+          <tbody>${tbRows || '<tr><td colspan="3" style="color:var(--muted);padding:14px">Ingen tidbanksdata för denna månad</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ── Tidbank helpers ──
+function tbClass(n){ if(n===null) return ''; return n>0?'tb-pos':n<0?'tb-neg':'tb-zero'; }
+function fmtH(n){ return (n>0?'+':'')+n+'h'; }
+
+// ── Error display ──
+function showError(msg){
+  document.getElementById('uploadArea').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('app').innerHTML = `<div class="err">⚠️ ${msg}</div>`;
+}
+</script>
+</body>
+</html>
