@@ -26,5 +26,12 @@
     "good": 6,
     "needs_improvement": 3,
     "poor": 0
+  },
+  {
+    "date": "2026-03-23",
+    "total": 13,
+    "good": 3,
+    "needs_improvement": 9,
+    "poor": 1
   }
 ]
