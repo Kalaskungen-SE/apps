@@ -58,8 +58,8 @@
   {
     "date": "2026-03-27",
     "total": 7,
-    "good": 0,
-    "needs_improvement": 0,
+    "good": 5,
+    "needs_improvement": 2,
     "poor": 0
   }
 ]
