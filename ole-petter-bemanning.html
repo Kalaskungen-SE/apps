@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kalaskungen – Bemanning</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
-      --red:       #e63946;
-      --red-dark:  #c1121f;
-      --red-soft:  #fde8ea;
+      --red:       #6d28d9;
+      --red-dark:  #4c1d95;
+      --red-soft:  #ede9fe;
       --bg:        #f0f2f5;
       --white:     #ffffff;
       --text:      #1c1c2e;
@@ -27,7 +28,8 @@
 
     /* ── HEADER ── */
     header {
-      background: var(--red); color: #fff;
+      background: linear-gradient(135deg, #4c1d95 0%, #831843 100%);
+      color: #fff;
       padding: 14px 20px; display: flex; align-items: center; justify-content: center;
       position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
@@ -91,7 +93,7 @@
 
     /* ── WEEK TABLE ── */
     .week-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-    .card-title { background: var(--red); color: #fff; padding: 11px 18px; font-size: 14px; font-weight: 700; }
+    .card-title { background: linear-gradient(135deg, #4c1d95 0%, #831843 100%); color: #fff; padding: 11px 18px; font-size: 14px; font-weight: 700; }
     .week-table { width: 100%; border-collapse: collapse; }
     .week-table th { background: var(--bg); color: var(--muted); padding: 9px 12px; text-align: left; font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--border); }
     .week-table th.day-th { text-align: center; }
@@ -138,7 +140,7 @@
     .m-cell.m-today { background: #fffbea; }
     .m-cell:hover:not(.m-empty) { background: var(--red-soft); }
     .m-num { font-size: 12px; font-weight: 700; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 4px; }
-    .m-today .m-num { background: var(--red); color: #fff; }
+    .m-today .m-num { background: linear-gradient(135deg, #4c1d95, #831843); color: #fff; }
     .m-staffing {
       font-size: 13px; font-weight: 800; text-align: center;
       width: 30px; height: 30px; border-radius: 50%;
@@ -408,7 +410,7 @@ function renderWeek(){
       <span class="chip-day">${dayName.slice(0,3).toUpperCase()}</span>
       <span class="chip-date">${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}</span>
       <span class="chip-count" style="background:${col}">${count}</span>
-      ${hol?`<span class="chip-names" style="color:var(--red);font-style:italic">${hol}</span>`:''}
+      ${hol?`<span class="chip-names" style="color:#6d28d9;font-style:italic">${hol}</span>`:''}
       <span class="chip-names">${working.map(r=>r.employee.split(' ')[0]).join(', ')||'Ingen'}</span>
     </div>`;
   });
@@ -418,7 +420,7 @@ function renderWeek(){
   let thCells=`<th style="width:120px">Anställd</th>`;
   days.forEach((day,i)=>{
     const hol=scheduleData.find(r=>r.dateStr===fmtKey(day)&&r.holidayNote)?.holidayNote??null;
-    thCells+=`<th class="day-th">${SV_DAYS_FULL[i]}<br><span style="font-weight:400;font-size:11px">${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}${hol?`<br><span style="color:var(--red);font-style:italic">${hol}</span>`:''}</span></th>`;
+    thCells+=`<th class="day-th">${SV_DAYS_FULL[i]}<br><span style="font-weight:400;font-size:11px">${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}${hol?`<br><span style="color:#6d28d9;font-style:italic">${hol}</span>`:''}</span></th>`;
   });
 
   let rowsHtml='';
