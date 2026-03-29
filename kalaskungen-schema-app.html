@@ -458,8 +458,8 @@ function parseKalaskungenRows(rows){
     const c0  = safeStr(row[0]);
     if(!c0) continue;
 
-    // ── Week header ──
-    const wm = c0.match(/^Vecka\s+(\d+)\s*\((.+)\)/i);
+    // ── Week header — tolererar saknad avslutande parentes ──
+    const wm = c0.match(/^Vecka\s+(\d+)\s*\(([^)]+)\)?/i);
     if(wm){
       weekNum    = parseInt(wm[1]);
       weekMonday = parseWeekStart(safeStr(wm[2]), weekNum);
@@ -519,7 +519,7 @@ function parseKalaskungenRows(rows){
 
         empCols.forEach(({shiftIdx, name}) => {
           const raw   = safeStr(row[shiftIdx]);
-          const isOff = !raw || raw === '0' || raw.toLowerCase() === 'ledig';
+          const isOff = !raw || raw === '0' || raw.toLowerCase() === 'ledig' || raw.toLowerCase() === 'ledog';
           schedule.push({
             date, dateStr: fmtKey(date), weekNum,
             employee: name,
