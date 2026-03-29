@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalaskungen – Bemanning</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --red:       #e63946;
+      --red-dark:  #c1121f;
+      --red-soft:  #fde8ea;
+      --bg:        #f0f2f5;
+      --white:     #ffffff;
+      --text:      #1c1c2e;
+      --muted:     #6b7280;
+      --border:    #e5e7eb;
+      --radius:    10px;
+      --shadow:    0 2px 12px rgba(0,0,0,0.08);
+      --full:      #16a34a;
+      --good:      #65a30d;
+      --low:       #d97706;
+      --critical:  #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--red); color: #fff;
+      padding: 14px 20px; display: flex; align-items: center; justify-content: center;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header .logo { font-size: 24px; margin-right: 10px; }
+    header h1 { font-size: 18px; font-weight: 700; }
+
+    /* ── LOADING ── */
+    #loadingScreen { max-width: 400px; margin: 80px auto; text-align: center; padding: 0 20px; }
+    .spinner { width: 52px; height: 52px; border-radius: 50%; border: 5px solid var(--red-soft); border-top-color: var(--red); animation: spin 0.9s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .loading-sub { font-size: 14px; color: var(--muted); }
+
+    /* ── CONTROLS ── */
+    #controls {
+      display: none; background: #fff; border-bottom: 1px solid var(--border);
+      padding: 10px 20px; gap: 10px; align-items: center; flex-wrap: wrap;
+      box-shadow: var(--shadow); position: sticky; top: 56px; z-index: 99;
+    }
+    #controls.show { display: flex; }
+    .nav-btn {
+      border: 1px solid var(--border); background: #fff;
+      padding: 6px 13px; border-radius: 7px; cursor: pointer;
+      font-size: 15px; color: var(--text); transition: all .15s;
+    }
+    .nav-btn:hover { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+    #periodLabel { font-size: 15px; font-weight: 700; min-width: 210px; text-align: center; }
+    .view-toggle { display: flex; margin-left: auto; }
+    .vbtn { padding: 6px 15px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); transition: all .15s; }
+    .vbtn:first-child { border-radius: 7px 0 0 7px; }
+    .vbtn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
+    .vbtn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+    /* ── MAIN ── */
+    #app { display: none; padding: 16px 20px; max-width: 1400px; margin: 0 auto; }
+    #app.show { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── STAFFING SUMMARY BAR ── */
+    .summary-bar {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 14px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    }
+    .summary-bar .label { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .day-chip {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--bg); border-radius: 8px; padding: 8px 12px;
+      min-width: 72px; cursor: pointer; transition: all .15s; border: 2px solid transparent;
+    }
+    .day-chip:hover { border-color: var(--red); }
+    .day-chip.active { border-color: var(--red); background: var(--red-soft); }
+    .day-chip .chip-day { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .day-chip .chip-date { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .day-chip .chip-count {
+      font-size: 20px; font-weight: 800;
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    .day-chip .chip-names { font-size: 10px; color: var(--muted); text-align: center; margin-top: 3px; max-width: 80px; line-height: 1.3; }
+
+    /* ── WEEK TABLE ── */
+    .week-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-title { background: var(--red); color: #fff; padding: 11px 18px; font-size: 14px; font-weight: 700; }
+    .week-table { width: 100%; border-collapse: collapse; }
+    .week-table th { background: var(--bg); color: var(--muted); padding: 9px 12px; text-align: left; font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--border); }
+    .week-table th.day-th { text-align: center; }
+    .week-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+    .week-table tr:last-child td { border-bottom: none; }
+    .week-table tr.count-row td { background: var(--bg); font-weight: 700; }
+    .week-table tr.count-row td:first-child { color: var(--muted); font-size: 12px; }
+    .emp-name { font-weight: 700; white-space: nowrap; }
+    .shift-pill {
+      display: inline-block; padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .pill-off   { background: #f3f4f6; color: #9ca3af; }
+    .pill-sem   { background: #dbeafe; color: #1e40af; }
+    .pill-empty { color: #d1d5db; font-size: 16px; }
+    td.day-cell { text-align: center; }
+    .count-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 50%;
+      font-size: 14px; font-weight: 800; color: #fff;
+    }
+
+    /* ── TIDBANK TABLE ── */
+    .tb-table { width: 100%; border-collapse: collapse; }
+    .tb-table th { background: var(--bg); color: var(--muted); padding: 9px 14px; font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--border); }
+    .tb-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .tb-table tr:last-child td { border-bottom: none; }
+    .tb-table .emp-col { font-weight: 700; }
+    .tb-pos  { color: #16a34a; font-weight: 700; }
+    .tb-neg  { color: #dc2626; font-weight: 700; }
+    .tb-zero { color: var(--muted); }
+
+    /* ── MONTH VIEW ── */
+    .month-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .month-col-heads { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .month-col-head { background: var(--bg); text-align: center; padding: 8px; font-size: 12px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .month-week-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .m-cell {
+      min-height: 90px; padding: 6px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background .1s;
+    }
+    .m-cell:nth-child(5n) { border-right: none; }
+    .m-cell.m-empty { background: var(--bg); opacity: 0.4; cursor: default; }
+    .m-cell.m-today { background: #fffbea; }
+    .m-cell:hover:not(.m-empty) { background: var(--red-soft); }
+    .m-num { font-size: 12px; font-weight: 700; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 4px; }
+    .m-today .m-num { background: var(--red); color: #fff; }
+    .m-staffing {
+      font-size: 13px; font-weight: 800; text-align: center;
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; margin: 4px auto 4px;
+    }
+    .m-names { font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+    /* ── ERROR ── */
+    .err { background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 14px 18px; color: #7f1d1d; font-size: 14px; }
+
+    @media (max-width: 700px) {
+      .week-table th, .week-table td { padding: 6px; font-size: 11px; }
+      .shift-pill { font-size: 11px; padding: 3px 7px; }
+      .day-chip { min-width: 58px; padding: 6px 8px; }
+    }
+    @media print {
+      header, #controls { display: none !important; }
+      #app { display: flex !important; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📋</div>
+  <h1>Kalaskungen – Bemanning</h1>
+</header>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-title">Hämtar schemat…</div>
+  <div class="loading-sub" id="loadMsg">Ansluter till GitHub</div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="nav-btn" onclick="navigate(-1)">◀</button>
+  <span id="periodLabel">–</span>
+  <button class="nav-btn" onclick="navigate(1)">▶</button>
+  <button class="nav-btn" onclick="goToday()">📅 Idag</button>
+  <div class="view-toggle">
+    <button class="vbtn active" id="btnWeek"  onclick="setView('week')">Vecka</button>
+    <button class="vbtn"        id="btnMonth" onclick="setView('month')">Månad</button>
+  </div>
+  <button class="nav-btn" onclick="window.print()">🖨️</button>
+</div>
+
+<!-- APP -->
+<div id="app"></div>
+
+<script>
+// ══════════════════════════════════════════
+const GITHUB_EXCEL_URL =
+  'https://raw.githubusercontent.com/Kalaskungen-SE/apps/main/SCHEMA%20KALASKUNGEN%20CLAUDE%20MASTER.xlsx';
+
+const SV_MONTHS_FULL  = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+const SV_MONTHS_SHORT = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+const SV_DAYS_FULL    = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag'];
+const SV_MONTH_MAP    = { jan:1,januari:1,feb:2,februari:2,mar:3,mars:3,apr:4,april:4,maj:5,jun:6,juni:6,jul:7,juli:7,aug:8,augusti:8,sep:9,september:9,okt:10,oktober:10,nov:11,november:11,dec:12,december:12 };
+const WEEKDAY_ORDER   = ['måndag','tisdag','onsdag','torsdag','fredag'];
+
+const EMP_COLORS = ['#7c3aed','#dc2626','#0369a1','#059669','#9d174d','#374151','#b45309','#0891b2'];
+
+// ── STATE ──
+let scheduleData = [];
+let tidbankData  = {};
+let employees    = [];
+let colorMap     = {};
+let currentDate  = new Date();
+let currentView  = 'week';
+let totalEmp     = 0;
+
+// ══════════════════════════════════════════
+// AUTO-LOAD
+// ══════════════════════════════════════════
+(async function autoLoad() {
+  const msg = document.getElementById('loadMsg');
+  try {
+    msg.textContent = 'Hämtar schemafilen från GitHub…';
+    const resp = await fetch(GITHUB_EXCEL_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    msg.textContent = 'Läser in schemat…';
+    const buffer = await resp.arrayBuffer();
+    document.getElementById('loadingScreen').style.display = 'none';
+    parseExcel(buffer);
+  } catch(err) {
+    document.getElementById('loadingScreen').innerHTML =
+      `<div class="err">⚠️ Kunde inte hämta schemat från GitHub.<br><small>${err.message}</small></div>`;
+    console.error(err);
+  }
+})();
+
+// ══════════════════════════════════════════
+// PARSING (identisk logik som medarbetarappen)
+// ══════════════════════════════════════════
+function safeStr(v){ return (v == null) ? '' : String(v).trim(); }
+
+function parseExcel(buffer){
+  try {
+    const wb   = XLSX.read(buffer, { type:'array', cellDates:false, raw:false });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:false, defval:'' });
+    const { schedule, tidbank, emps } = parseKalaskungenRows(rows);
+
+    if(!schedule.length){ showError('Inga schemadat hittades i filen.'); return; }
+
+    scheduleData = schedule;
+    tidbankData  = tidbank;
+    employees    = emps;
+    totalEmp     = emps.length;
+    emps.forEach((e,i) => colorMap[e] = EMP_COLORS[i % EMP_COLORS.length]);
+
+    // Jump to closest date
+    const todayStr = fmtKey(new Date());
+    if(!schedule.some(r => r.dateStr === todayStr) && schedule.length){
+      currentDate = schedule.reduce((b,r) =>
+        Math.abs(r.date - new Date()) < Math.abs(b.date - new Date()) ? r : b
+      ).date;
+    }
+
+    document.getElementById('controls').classList.add('show');
+    document.getElementById('app').classList.add('show');
+    renderView();
+  } catch(err) {
+    showError('Fel vid inläsning: ' + err.message);
+    console.error(err);
+  }
+}
+
+function parseKalaskungenRows(rows){
+  const schedule=[]; const tidbank={}; const empSet=[];
+  let empCols=[]; let weekMonday=null; let weekNum=null;
+
+  for(let r=0; r<rows.length; r++){
+    const row=rows[r]||[]; const c0=safeStr(row[0]);
+    if(!c0) continue;
+
+    const wm=c0.match(/^Vecka\s+(\d+)\s*\(([^)]+)\)?/i);
+    if(wm){
+      weekNum=parseInt(wm[1]);
+      weekMonday=parseWeekStart(safeStr(wm[2]),weekNum);
+      const det=[];
+      for(let c=0;c<row.length-1;c++){
+        const v=safeStr(row[c]),nxt=safeStr(row[c+1]);
+        if(v&&v!=='Tid'&&nxt==='Tid'&&!/^\d/.test(v)&&v.length>1) det.push({shiftIdx:c,bankIdx:c+1,name:v});
+      }
+      if(det.length){ empCols=det; det.forEach(d=>{ if(!empSet.includes(d.name)) empSet.push(d.name); }); }
+      continue;
+    }
+    if(c0.toLowerCase().startsWith('veckans saldo')&&weekNum!==null&&empCols.length){
+      const key=weekNum+'-'+(weekMonday?weekMonday.getFullYear():'x');
+      if(!tidbank[key]) tidbank[key]={};
+      empCols.forEach(({bankIdx,name})=>{ const v=safeStr(row[bankIdx]); if(!tidbank[key][name]) tidbank[key][name]={}; tidbank[key][name].saldo=v!==''?parseFloat(v):null; });
+      continue;
+    }
+    if(c0.toLowerCase().startsWith('totalt i banken')&&weekNum!==null&&empCols.length){
+      const key=weekNum+'-'+(weekMonday?weekMonday.getFullYear():'x');
+      if(!tidbank[key]) tidbank[key]={};
+      empCols.forEach(({bankIdx,name})=>{ const v=safeStr(row[bankIdx]); if(!tidbank[key][name]) tidbank[key][name]={}; tidbank[key][name].total=v!==''?parseFloat(v):null; });
+      continue;
+    }
+    if(weekMonday&&empCols.length){
+      const c0l=c0.toLowerCase();
+      const dayIdx=WEEKDAY_ORDER.findIndex(d=>c0l.startsWith(d));
+      if(dayIdx!==-1){
+        const date=new Date(weekMonday); date.setDate(weekMonday.getDate()+dayIdx);
+        const hm=c0.match(/\((.+)\)/); const holidayNote=hm?hm[1]:null;
+        empCols.forEach(({shiftIdx,name})=>{
+          const raw=safeStr(row[shiftIdx]);
+          const isOff=!raw||raw==='0'||/^l[ei]d[oi]g$/i.test(raw);
+          const isSem=/^semester$/i.test(raw);
+          schedule.push({ date, dateStr:fmtKey(date), weekNum, employee:name, shift:isOff?'Ledig':raw, isOff, isSem, holidayNote });
+        });
+      }
+    }
+  }
+  return { schedule, tidbank, emps:empSet };
+}
+
+function parseWeekStart(str,isoWeek){
+  if(!str) return null; str=str.trim();
+  let m=str.match(/^(\d+)-\d+\s+([a-zåäö]+)/i)||str.match(/^(\d+)\s+([a-zåäö]+)/i);
+  if(!m) return null;
+  const day=parseInt(m[1]),month=SV_MONTH_MAP[m[2].toLowerCase()]||0;
+  if(!month) return null;
+  return buildDate(day,month,isoWeek);
+}
+function buildDate(day,month,isoWeek){
+  const yr=new Date().getFullYear();
+  for(const y of [yr,yr+1,yr-1]){ try{ const d=new Date(y,month-1,day); if(!isNaN(d)&&getISOWeek(d)===isoWeek) return d; }catch(e){} }
+  return new Date(new Date().getFullYear(),month-1,day);
+}
+function getISOWeek(d){ const dt=new Date(d); dt.setHours(0,0,0,0); dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7); const w1=new Date(dt.getFullYear(),0,4); return 1+Math.round(((dt-w1)/86400000-3+(w1.getDay()+6)%7)/7); }
+function fmtKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtH(n){ return (n>0?'+':'')+n+'h'; }
+function tbClass(n){ return n===null?'':n>0?'tb-pos':n<0?'tb-neg':'tb-zero'; }
+
+// ══════════════════════════════════════════
+// STAFFING HELPERS
+// ══════════════════════════════════════════
+function staffingColor(working, total){
+  const ratio = working / total;
+  if(ratio >= 1)   return '#16a34a';
+  if(ratio >= 0.7) return '#65a30d';
+  if(ratio >= 0.4) return '#d97706';
+  return '#dc2626';
+}
+
+function getDayStaffing(dateStr){
+  const entries = scheduleData.filter(r => r.dateStr === dateStr);
+  const working = entries.filter(r => !r.isOff);
+  const off     = entries.filter(r => r.isOff);
+  return { working, off, count: working.length, total: entries.length };
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navigate(dir){
+  if(currentView==='week') currentDate=new Date(currentDate.getTime()+dir*7*86400000);
+  else currentDate=new Date(currentDate.getFullYear(),currentDate.getMonth()+dir,1);
+  renderView();
+}
+function goToday(){ currentDate=new Date(); renderView(); }
+function setView(v){
+  currentView=v;
+  document.getElementById('btnWeek').classList.toggle('active',v==='week');
+  document.getElementById('btnMonth').classList.toggle('active',v==='month');
+  renderView();
+}
+function renderView(){ currentView==='week'?renderWeek():renderMonth(); }
+
+// ══════════════════════════════════════════
+// WEEK VIEW
+// ══════════════════════════════════════════
+function renderWeek(){
+  const dow=currentDate.getDay();
+  const monday=new Date(currentDate);
+  monday.setDate(currentDate.getDate()-(dow===0?6:dow-1));
+  const friday=new Date(monday); friday.setDate(monday.getDate()+4);
+  const wn=getISOWeek(monday);
+  const yr=monday.getFullYear();
+
+  document.getElementById('periodLabel').textContent =
+    `Vecka ${wn}  ·  ${monday.getDate()} ${SV_MONTHS_SHORT[monday.getMonth()]}–${friday.getDate()} ${SV_MONTHS_SHORT[friday.getMonth()]} ${yr}`;
+
+  const today=fmtKey(new Date());
+  const tbKey=`${wn}-${yr}`;
+
+  // Build day dates
+  const days=[];
+  for(let d=0;d<5;d++){ const day=new Date(monday); day.setDate(monday.getDate()+d); days.push(day); }
+
+  // ── Summary chips ──
+  let chipsHtml='<div class="summary-bar"><span class="label">Bemanning</span>';
+  days.forEach(day=>{
+    const dStr=fmtKey(day);
+    const {working,count,total}=getDayStaffing(dStr);
+    const col=staffingColor(count,totalEmp||6);
+    const isToday=dStr===today;
+    const hol=scheduleData.find(r=>r.dateStr===dStr&&r.holidayNote)?.holidayNote??null;
+    const dayName=SV_DAYS_FULL[days.indexOf(day)];
+    chipsHtml+=`<div class="day-chip ${isToday?'active':''}">
+      <span class="chip-day">${dayName.slice(0,3).toUpperCase()}</span>
+      <span class="chip-date">${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}</span>
+      <span class="chip-count" style="background:${col}">${count}</span>
+      ${hol?`<span class="chip-names" style="color:var(--red);font-style:italic">${hol}</span>`:''}
+      <span class="chip-names">${working.map(r=>r.employee.split(' ')[0]).join(', ')||'Ingen'}</span>
+    </div>`;
+  });
+  chipsHtml+='</div>';
+
+  // ── Team table ──
+  let thCells=`<th style="width:120px">Anställd</th>`;
+  days.forEach((day,i)=>{
+    const hol=scheduleData.find(r=>r.dateStr===fmtKey(day)&&r.holidayNote)?.holidayNote??null;
+    thCells+=`<th class="day-th">${SV_DAYS_FULL[i]}<br><span style="font-weight:400;font-size:11px">${day.getDate()} ${SV_MONTHS_SHORT[day.getMonth()]}${hol?`<br><span style="color:var(--red);font-style:italic">${hol}</span>`:''}</span></th>`;
+  });
+
+  let rowsHtml='';
+  employees.forEach(emp=>{
+    const col=colorMap[emp];
+    let cells=`<td><span class="emp-name" style="color:${col}">● ${emp}</span></td>`;
+    days.forEach(day=>{
+      const entry=scheduleData.find(r=>r.dateStr===fmtKey(day)&&r.employee===emp);
+      if(!entry)           cells+=`<td class="day-cell"><span class="pill-empty">–</span></td>`;
+      else if(entry.isOff) cells+=`<td class="day-cell"><span class="shift-pill pill-off">Ledig</span></td>`;
+      else if(entry.isSem) cells+=`<td class="day-cell"><span class="shift-pill pill-sem">Semester</span></td>`;
+      else                 cells+=`<td class="day-cell"><span class="shift-pill" style="background:${col}18;color:${col}">${entry.shift}</span></td>`;
+    });
+    rowsHtml+=`<tr>${cells}</tr>`;
+  });
+
+  // Count row
+  let countCells=`<td style="color:var(--muted);font-size:12px">Antal på jobb</td>`;
+  days.forEach(day=>{
+    const {count}=getDayStaffing(fmtKey(day));
+    const col=staffingColor(count,totalEmp||6);
+    countCells+=`<td class="day-cell"><span class="count-badge" style="background:${col}">${count}</span></td>`;
+  });
+
+  // ── Tidbank ──
+  let tbRows='';
+  employees.forEach(emp=>{
+    const col=colorMap[emp];
+    const tb=(tidbankData[tbKey]||{})[emp]||{};
+    tbRows+=`<tr>
+      <td class="emp-col" style="color:${col}">● ${emp}</td>
+      <td class="${tbClass(tb.saldo??null)}">${tb.saldo!=null?fmtH(tb.saldo):'–'}</td>
+      <td class="${tbClass(tb.total??null)}">${tb.total!=null?fmtH(tb.total):'–'}</td>
+    </tr>`;
+  });
+
+  document.getElementById('app').innerHTML = `
+    ${chipsHtml}
+
+    <div class="week-card">
+      <div class="card-title">👥 Teamets schema — Vecka ${wn}</div>
+      <div style="overflow-x:auto">
+        <table class="week-table">
+          <thead><tr>${thCells}</tr></thead>
+          <tbody>
+            ${rowsHtml}
+            <tr class="count-row">${countCells}</tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="week-card">
+      <div class="card-title">🏦 Tidbank — Vecka ${wn}</div>
+      <table class="tb-table">
+        <thead><tr><th>Anställd</th><th>Saldo v.${wn}</th><th>Totalt i bank</th></tr></thead>
+        <tbody>${tbRows||'<tr><td colspan="3" style="color:var(--muted);padding:14px">Ingen tidbanksdata för denna vecka</td></tr>'}</tbody>
+      </table>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// MONTH VIEW
+// ══════════════════════════════════════════
+function renderMonth(){
+  const y=currentDate.getFullYear();
+  const m=currentDate.getMonth();
+  document.getElementById('periodLabel').textContent=`${SV_MONTHS_FULL[m]} ${y}`;
+
+  const today=fmtKey(new Date());
+  const daysInMonth=new Date(y,m+1,0).getDate();
+
+  // Mon–Fri only
+  const allDays=[];
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(y,m,d); const dow=date.getDay();
+    if(dow>=1&&dow<=5) allDays.push(date);
+  }
+
+  // Group by week
+  const weeks=[]; let curW=null;
+  allDays.forEach(date=>{ const wn=getISOWeek(date); if(!curW||curW.wn!==wn){ curW={wn,days:[]}; weeks.push(curW); } curW.days.push(date); });
+
+  let calHtml='<div class="month-col-heads">';
+  SV_DAYS_FULL.forEach(d=>calHtml+=`<div class="month-col-head">${d}</div>`);
+  calHtml+='</div>';
+
+  weeks.forEach(wg=>{
+    calHtml+='<div class="month-week-grid">';
+    const firstDow=wg.days[0].getDay();
+    for(let p=1;p<firstDow;p++) calHtml+='<div class="m-cell m-empty"></div>';
+
+    wg.days.forEach(date=>{
+      const dStr=fmtKey(date);
+      const isToday=dStr===today;
+      const {working,count}=getDayStaffing(dStr);
+      const col=count>0?staffingColor(count,totalEmp||6):'#d1d5db';
+      const hol=scheduleData.find(r=>r.dateStr===dStr&&r.holidayNote)?.holidayNote??null;
+      const names=working.map(r=>r.employee.split(' ')[0]).join(', ');
+
+      calHtml+=`<div class="m-cell${isToday?' m-today':''}">
+        <div class="m-num">${date.getDate()}</div>
+        ${count>0?`<div class="m-staffing" style="background:${col}">${count}</div>`:'<div style="height:30px"></div>'}
+        ${hol?`<div style="font-size:10px;color:var(--red);font-style:italic;margin-bottom:2px">${hol}</div>`:''}
+        <div class="m-names">${names}</div>
+      </div>`;
+    });
+
+    const lastDow=wg.days[wg.days.length-1].getDay();
+    for(let p=lastDow;p<5;p++) calHtml+='<div class="m-cell m-empty"></div>';
+    calHtml+='</div>';
+  });
+
+  // Month tidbank summary (last week of month)
+  const monthWeeks=weeks.map(wg=>{ const tbKey=`${wg.wn}-${y}`; const tb=tidbankData[tbKey]||{}; return {wn:wg.wn,tb}; });
+  let tbHtml='';
+  employees.forEach(emp=>{
+    const col=colorMap[emp];
+    const lastWk=monthWeeks[monthWeeks.length-1];
+    const tb=lastWk?(lastWk.tb[emp]||{}):{};
+    tbHtml+=`<tr>
+      <td class="emp-col" style="color:${col}">● ${emp}</td>
+      ${monthWeeks.map(w=>{ const t=(w.tb[emp]||{}); return `<td class="${tbClass(t.saldo??null)}" style="text-align:center">${t.saldo!=null?fmtH(t.saldo):'–'}</td>`; }).join('')}
+      <td class="${tbClass(tb.total??null)}" style="font-weight:800;text-align:center">${tb.total!=null?fmtH(tb.total):'–'}</td>
+    </tr>`;
+  });
+
+  const wkHeaders=monthWeeks.map(w=>`<th style="text-align:center">v.${w.wn}</th>`).join('');
+
+  document.getElementById('app').innerHTML=`
+    <div class="month-card">
+      <div class="card-title">📅 Bemanning — ${SV_MONTHS_FULL[m]} ${y}</div>
+      <div style="overflow-x:auto">${calHtml}</div>
+    </div>
+
+    <div class="week-card">
+      <div class="card-title">🏦 Tidbank — ${SV_MONTHS_FULL[m]} ${y}</div>
+      <div style="overflow-x:auto">
+        <table class="tb-table">
+          <thead><tr><th>Anställd</th>${wkHeaders}<th style="text-align:center">Totalt bank</th></tr></thead>
+          <tbody>${tbHtml||'<tr><td colspan="10" style="color:var(--muted);padding:14px">Ingen data</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function showError(msg){
+  document.getElementById('app').classList.add('show');
+  document.getElementById('app').innerHTML=`<div class="err">⚠️ ${msg}</div>`;
+}
+</script>
+</body>
+</html>
