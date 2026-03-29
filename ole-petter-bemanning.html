@@ -222,7 +222,7 @@ let totalEmp     = 0;
   const msg = document.getElementById('loadMsg');
   try {
     msg.textContent = 'Hämtar schemafilen från GitHub…';
-    const resp = await fetch(GITHUB_EXCEL_URL);
+    const resp = await fetch(GITHUB_EXCEL_URL, { cache: 'no-cache' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     msg.textContent = 'Läser in schemat…';
     const buffer = await resp.arrayBuffer();
