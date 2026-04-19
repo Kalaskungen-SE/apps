@@ -342,6 +342,47 @@
   }
   .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* Veckoavslut-sektion */
+  .week-end-strip {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .week-end-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    gap: 11px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .week-end-item:last-child { border-bottom: none; }
+  .week-end-item.done { opacity: 0.38; }
+  .week-end-item.done .we-label { text-decoration: line-through; }
+
+  .we-icon { font-size: 18px; flex-shrink: 0; min-width: 26px; text-align: center; }
+  .we-body { flex: 1; }
+  .we-label { font-size: 14px; font-weight: 500; }
+  .we-sub { font-size: 11px; color: var(--ink-soft); margin-top: 1px; line-height: 1.35; }
+
+  .we-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .week-end-item.done .we-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
   /* Day mode badge */
   .daymode-badge {
     display: inline-block;
@@ -402,6 +443,12 @@
   <div class="section">
     <div class="section-label">Uppgifter idag</div>
     <div class="task-cards" id="task-list"></div>
+  </div>
+
+  <!-- Veckoavslut (fredag) -->
+  <div class="section" id="week-end-section" style="display:none">
+    <div class="section-label">Veckoavslut ✓</div>
+    <div class="week-end-strip" id="week-end-list"></div>
   </div>
 
   <!-- Framsteg -->
@@ -495,9 +542,19 @@ function getSchedule(weekday) {
 
 const SYSCHECKS = [
   { dot: 'dot-red', label: 'Kustom — alla försäljningsorder bokförda?', sub: 'Daglig kontroll att inga ordrar saknas', section: 'sys' },
+  { dot: 'dot-red', label: 'Kustom — obesvarade kundbestridanden?', sub: 'Vi har 14 dagar på oss att svara — kolla att inget är obevakat. Meddela Fredrik om du hittar något', section: 'sys' },
   { dot: 'dot-amber', label: 'Zoho Desk — rensa skräppost', sub: 'OBS: kolla att inga riktiga kundärenden hamnat där', section: 'sys' },
   { dot: 'dot-green', label: 'PostNord kundportal — norska returer', sub: 'Hämta hem returer från Norge (mån, ons, fre)', section: 'sys', days: [1,3,5] },
   { dot: 'dot-blue', label: 'Nshift — räkna paket på norgepallen', sub: 'Stämmer antal mot listan från Nshift?', section: 'sys' },
+];
+
+// ─── VECKOAVSLUT (fredag) ────────────────────────────────────
+
+const WEEK_END_CHECKS = [
+  { icon: '⚖️', label: 'Kustom — besvarat alla kundbestridanden?', sub: 'Gå igenom listan en sista gång. Inget får vara obevakat inför helgen — 14-dagarsgränsen tickar' },
+  { icon: '📦', label: 'Packavdelningen preppat inför måndag', sub: 'Material, tejp, fyllnadsmaterial, kartonger påfyllda. Måndag ska starta utan att leta efter grejer' },
+  { icon: '📋', label: 'Frånvaro & övertid lämnat till Ole Petter', sub: 'Veckans underlag klart — Ole Petter behöver det för lönekörningen' },
+  { icon: '🔍', label: 'Inga öppna PRIO-ärenden i Zoho Desk', sub: 'Allt som behöver åtgärd ska vara hanterat eller eskalerats till Fredrik innan helgen' },
 ];
 
 // ─── UPPGIFTER PER VECKODAG ───────────────────────────────────
@@ -574,6 +631,11 @@ function getDayTasks(weekday) {
       desc: 'Har någon varit borta utan att höra av sig denna vecka? Skicka SMS. Sjukskrivning >14 dagar → anmäl FK',
       badge: 'Fredag', badgeClass: 'badge-amber'
     });
+    tasks.push({
+      icon: '🗓️', title: 'Info till teamet inför nästa vecka',
+      desc: 'Berätta för lagerteamet om det är något speciellt att tänka på nästa vecka — högt ordertryck, leveranser, avvikelser',
+      badge: 'Fredag', badgeClass: 'badge-amber'
+    });
   }
 
   tasks.push({
@@ -641,7 +703,7 @@ function playAlertSound() {
 
 // ─── STATE ────────────────────────────────────────────────────
 
-let state = { sched: {}, sys: {}, tasks: {} };
+let state = { sched: {}, sys: {}, tasks: {}, weekEnd: {} };
 
 function getKey() {
   const d = new Date();
@@ -651,9 +713,12 @@ function getKey() {
 function loadState() {
   try {
     const s = sessionStorage.getItem(getKey());
-    if (s) state = JSON.parse(s);
-    else state = { sched: {}, sys: {}, tasks: {} };
-  } catch(e) { state = { sched: {}, sys: {}, tasks: {} }; }
+    if (s) {
+      state = JSON.parse(s);
+      if (!state.weekEnd) state.weekEnd = {};
+    }
+    else state = { sched: {}, sys: {}, tasks: {}, weekEnd: {} };
+  } catch(e) { state = { sched: {}, sys: {}, tasks: {}, weekEnd: {} }; }
 }
 
 function saveState() {
@@ -661,7 +726,7 @@ function saveState() {
 }
 
 function resetDay() {
-  state = { sched: {}, sys: {}, tasks: {} };
+  state = { sched: {}, sys: {}, tasks: {}, weekEnd: {} };
   saveState(); render();
 }
 
@@ -682,6 +747,13 @@ function toggleSys(i) {
 function toggleTask(i) {
   const was = !!state.tasks[i];
   state.tasks[i] = !was;
+  was ? playUncheckSound() : playCheckSound();
+  saveState(); render();
+}
+
+function toggleWeekEnd(i) {
+  const was = !!state.weekEnd[i];
+  state.weekEnd[i] = !was;
   was ? playUncheckSound() : playCheckSound();
   saveState(); render();
 }
@@ -747,7 +819,7 @@ function render() {
   document.getElementById('daytype-display').textContent =
     isProdDay ? 'Produktionsdag' :
     (wd === 3 ? 'Onsdag — orderkontroll' :
-    (wd === 5 ? 'Fredag — returer & personal' : 'Vardag'));
+    (wd === 5 ? 'Fredag — veckoavslut' : 'Vardag'));
 
   // Helg
   if (wd === 0 || wd === 6) {
@@ -791,6 +863,26 @@ function render() {
     </div>`;
   }).join('');
 
+  // Veckoavslut (fredag)
+  const weekEndSection = document.getElementById('week-end-section');
+  const weekEndList = document.getElementById('week-end-list');
+  if (wd === 5) {
+    weekEndSection.style.display = 'block';
+    weekEndList.innerHTML = WEEK_END_CHECKS.map((w,i) => {
+      const done = !!state.weekEnd[i];
+      return `<div class="week-end-item ${done?'done':''}" onclick="toggleWeekEnd(${i})">
+        <div class="we-icon">${w.icon}</div>
+        <div class="we-body">
+          <div class="we-label">${w.label}</div>
+          <div class="we-sub">${w.sub}</div>
+        </div>
+        <div class="we-check">${done?'✓':''}</div>
+      </div>`;
+    }).join('');
+  } else {
+    weekEndSection.style.display = 'none';
+  }
+
   // Uppgifter
   const tasks = getDayTasks(wd);
   document.getElementById('task-list').innerHTML = tasks.map((t,i) => {
@@ -812,9 +904,11 @@ function render() {
   const doneSys = Object.values(state.sys).filter(Boolean).length;
   const totalTasks = tasks.length;
   const doneTasks = Object.values(state.tasks).filter(Boolean).length;
+  const totalWeekEnd = wd === 5 ? WEEK_END_CHECKS.length : 0;
+  const doneWeekEnd = wd === 5 ? Object.values(state.weekEnd).filter(Boolean).length : 0;
 
-  const total = totalSched + totalSys + totalTasks;
-  const done = doneSched + doneSys + doneTasks;
+  const total = totalSched + totalSys + totalTasks + totalWeekEnd;
+  const done = doneSched + doneSys + doneTasks + doneWeekEnd;
   const pct = total ? Math.round((done/total)*100) : 0;
 
   document.getElementById('progress-fill').style.width = pct + '%';
