@@ -518,7 +518,6 @@ function getSchedule(weekday) {
   const items = [
     { time: '07:00', mins: 420, icon: '🔔', text: 'Morgonstart', sub: 'Bedöm situationen — tilldela leveransgrupper så produktionen kommer igång direkt' },
     { time: '07:10', mins: 430, icon: '⚙️', text: 'Jobbköer i BC', sub: 'Kontrollera att Norce- och Bitlog-köerna har status "Klar" — inte "fel" eller "stoppad"' },
-    { time: '07:20', mins: 440, icon: '🔢', text: 'BC vs Bitlog — jämför orderantal', sub: 'Stämmer antalet ordrar i BC överens med Bitlog? Avvikelse → Teams till Fredrik' },
     { time: '09:20', mins: 560, icon: '☕', text: 'Samla alla — 2 min innan frukost', sub: 'Alla samlas hos Bittan och GÅR TILLSAMMANS till rasten kl 09:30' },
     { time: '09:30', mins: 570, icon: '🚶', text: 'Frukostrast 09:30–09:45', sub: 'Alla tillbaka i arbete exakt 09:45 — inte resa sig upp och börja gå då' },
     { time: '09:45', mins: 585, icon: '⚙️', text: 'Jobbköer — kontroll efter frukost', sub: 'Snabbkoll att köerna fortfarande har status "Klar" i BC' },
@@ -599,13 +598,7 @@ function getDayTasks(weekday) {
   }
 
   // Onsdag: fastnade ordrar
-  if (weekday === 3) {
-    tasks.push({
-      icon: '🔍', title: 'Fastnade ordrar — onsdagskontroll',
-      desc: 'Jämför orderantal BC vs Bitlog noggrant. Kolla WMS-loggen och webbloggen. Avvikelse → Teams till Fredrik',
-      badge: 'Onsdag', badgeClass: 'badge-amber'
-    });
-  }
+  
 
   // Torsdag + fredag: kundreturer
   if ([4,5].includes(weekday)) {
