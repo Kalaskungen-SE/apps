@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kundtjänst QA — 2026-05-19</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+<meta name="theme-color" content="#1a1a2e">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+
+#auth-wall { display:flex; align-items:center; justify-content:center; height:100vh; background:#0f1117; }
+#auth-box { background:#1a1d2e; border:1px solid #2d3748; border-radius:12px; padding:40px; text-align:center; width:320px; }
+#auth-box h2 { color:#fff; margin-bottom:8px; font-size:1.2rem; }
+#auth-box p { color:#718096; font-size:0.85rem; margin-bottom:24px; }
+#auth-box input { width:100%; padding:10px 14px; background:#0f1117; border:1px solid #4a5568; border-radius:6px; color:#fff; font-size:1rem; margin-bottom:12px; outline:none; }
+#auth-box input:focus { border-color:#9f7aea; }
+#auth-box button { width:100%; padding:10px; background:#9f7aea; border:none; border-radius:6px; color:#fff; font-size:1rem; font-weight:600; cursor:pointer; }
+#auth-box button:hover { background:#805ad5; }
+#auth-box .err { color:#fc8181; font-size:0.8rem; margin-top:8px; display:none; }
+#main-content { display:none; }
+
+.header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 2rem 2.5rem; }
+.header h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; }
+.header-meta { opacity: 0.65; font-size: 0.85rem; margin-top: 0.25rem; }
+.header-back { display: inline-block; margin-top: 0.75rem; color: #9f7aea; text-decoration: none; font-size: 0.8rem; }
+.header-back:hover { text-decoration: underline; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: white; border-radius: 10px; padding: 1.2rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.stat-card .value { font-size: 2rem; font-weight: 800; }
+.stat-card .label { font-size: 0.72rem; color: #666; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-good .value { color: #27ae60; }
+.stat-warn .value { color: #e67e22; }
+.stat-bad .value { color: #e74c3c; }
+.stat-total .value { color: #2980b9; }
+
+.tags-box { background: white; border-radius: 10px; padding: 1.2rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.tags-box h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: #888; margin-bottom: 0.75rem; }
+.tag-pill { display: inline-block; background: #f0f4ff; color: #2c5282; border-radius: 20px; padding: 0.25rem 0.7rem; font-size: 0.78rem; font-weight: 600; margin: 0.2rem; }
+
+.filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.filter-btn { padding: 0.4rem 1.1rem; border-radius: 20px; border: 2px solid #e0e0e0; background: white; cursor: pointer; font-size: 0.83rem; font-weight: 600; transition: all 0.18s; }
+.filter-btn:hover, .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+.filter-btn.f-good.active { background: #27ae60; border-color: #27ae60; }
+.filter-btn.f-warn.active { background: #e67e22; border-color: #e67e22; }
+.filter-btn.f-bad.active { background: #e74c3c; border-color: #e74c3c; }
+
+.ticket-card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 5px solid #e0e0e0; transition: transform 0.15s; }
+.ticket-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.ticket-card.grade-good { border-left-color: #27ae60; }
+.ticket-card.grade-needs_improvement { border-left-color: #e67e22; }
+.ticket-card.grade-poor { border-left-color: #e74c3c; }
+
+.ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+.ticket-title { font-weight: 700; font-size: 1rem; color: #1a1a2e; }
+.ticket-meta { font-size: 0.75rem; color: #888; margin-top: 0.2rem; }
+
+.badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.badge-good { background: #eafaf1; color: #1e8449; }
+.badge-needs_improvement { background: #fef9e7; color: #b7770d; }
+.badge-poor { background: #fdecea; color: #c0392b; }
+
+.section-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: #999; margin-bottom: 0.3rem; font-weight: 700; }
+.section-content { font-size: 0.875rem; line-height: 1.6; color: #333; margin-bottom: 1rem; }
+.section-content p { margin-bottom: 0.4rem; }
+
+.alternative-box { background: #f0f9ff; border-left: 3px solid #3498db; border-radius: 6px; padding: 0.75rem 1rem; margin-top: 0.75rem; }
+.alternative-box .alt-label { font-size: 0.7rem; color: #2980b9; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+.alternative-box .alt-content { font-size: 0.85rem; line-height: 1.55; color: #1a4a6e; font-style: italic; }
+
+.ticket-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.ticket-tag { background: #f0f4ff; color: #2c5282; border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.72rem; font-weight: 600; }
+
+.divider { border: none; border-top: 1px solid #f0f0f0; margin: 0.75rem 0; }
+.no-results { text-align: center; color: #aaa; padding: 3rem; font-size: 0.9rem; display: none; }
+
+/* Index-specifikt */
+.week-section { margin-bottom: 2.5rem; }
+.week-header { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+.week-stats { font-size: 0.8rem; color: #666; font-weight: 400; }
+.day-row { display: flex; align-items: center; background: white; border-radius: 8px; padding: 0.9rem 1.2rem; margin-bottom: 0.6rem; box-shadow: 0 1px 4px rgba(0,0,0,0.07); text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s; border-left: 4px solid #e0e0e0; }
+.day-row:hover { transform: translateX(3px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+.day-row.has-poor { border-left-color: #e74c3c; }
+.day-row.all-good { border-left-color: #27ae60; }
+.day-row.has-warn { border-left-color: #e67e22; }
+.day-date { font-weight: 700; font-size: 0.9rem; min-width: 120px; }
+.day-bars { flex: 1; display: flex; gap: 0.5rem; align-items: center; }
+.bar-wrap { display: flex; align-items: center; gap: 0.25rem; font-size: 0.8rem; }
+.bar-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-good { background: #27ae60; }
+.dot-warn { background: #e67e22; }
+.dot-bad { background: #e74c3c; }
+.day-total { font-size: 0.78rem; color: #999; margin-left: auto; padding-left: 1rem; white-space: nowrap; }
+.trend-arrow { font-size: 1rem; margin-left: 0.5rem; }
+</style>
+<script>
+(function(){
+  function showContent(){var w=document.getElementById('auth-wall'),m=document.getElementById('main-content');if(w)w.style.display='none';if(m)m.style.display='block';}
+  function checkAuth(){if(localStorage.getItem('kb_auth')==='kalaskungen2026'){showContent();return true;}return false;}
+  window._doLogin=function(){var v=document.getElementById('auth-input').value;if(v==='kalaskungen2026'){localStorage.setItem('kb_auth','kalaskungen2026');showContent();}else{document.getElementById('auth-err').style.display='block';}};
+  window.addEventListener('DOMContentLoaded',function(){if(!checkAuth()){var w=document.getElementById('auth-wall');if(w)w.style.display='flex';var i=document.getElementById('auth-input');if(i)i.addEventListener('keydown',function(e){if(e.key==='Enter')window._doLogin();});}});
+})();
+</script>
+</head>
+<body>
+<div id="auth-wall" style="display:none;">
+  <div id="auth-box">
+    <h2>🎯 Kundtjänst QA</h2>
+    <p>Ange lösenord för att fortsätta</p>
+    <input type="password" id="auth-input" placeholder="Lösenord" autocomplete="current-password">
+    <button onclick="window._doLogin()">Logga in</button>
+    <div class="err" id="auth-err">Fel lösenord</div>
+  </div>
+</div>
+<div id="main-content">
+<div class="header">
+  <h1>🎯 Kundtjänst QA — 2026-05-19</h1>
+  <div class="header-meta">22 ärenden granskade · Genererad: 2026-05-19 16:04 UTC</div>
+  <a href="https://kalaskungen-se.github.io/apps/bittan-dashboard-v2.html" class="header-back">← Bittans dag</a>
+</div>
+<div class="container">
+  <div class="stats-grid">
+    <div class="stat-card stat-total"><div class="value">22</div><div class="label">Totalt</div></div>
+    <div class="stat-card stat-good"><div class="value">16</div><div class="label">✅ Bra</div></div>
+    <div class="stat-card stat-warn"><div class="value">6</div><div class="label">⚠️ Förbättringsbar</div></div>
+    <div class="stat-card stat-bad"><div class="value">0</div><div class="label">❌ Felaktig</div></div>
+  </div>
+  <div class="tags-box"><h3>Vanligaste taggar</h3><span class="tag-pill">handlingskraft (12)</span><span class="tag-pill">tydlighet (11)</span><span class="tag-pill">leveransfråga (7)</span><span class="tag-pill">empati (6)</span><span class="tag-pill">returhantering (3)</span><span class="tag-pill">tonläge (1)</span></div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all" onclick="filterCards('all')">Alla (22)</button>
+    <button class="filter-btn f-good" data-filter="good" onclick="filterCards('good')">✅ Bra (16)</button>
+    <button class="filter-btn f-warn" data-filter="needs_improvement" onclick="filterCards('needs_improvement')">⚠️ Förbättringsbar (6)</button>
+    <button class="filter-btn f-bad" data-filter="poor" onclick="filterCards('poor')">❌ Felaktig (0)</button>
+  </div>
+  <div id="tickets-container">
+    
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13403 — Saknade produkt</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 14:17</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund rapporterade att en produkt saknades i leveransen. Bittan bad om foto och förklarade sedan att lagersaldot stämde, och bad kunden leta i packpappret.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bad om foto, sedan svarade hon att lagersaldot stämmer och uppmanade kunden att leta igen i emballaget.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Tonen är vänlig men handlingskraften är svag. Att hänvisa till lagersaldot och be kunden leta igen kan upplevas som avfärdande när kunden redan är övertygad om att produkten saknas. Ett starkare svar hade erbjudit konkret nästa steg — t.ex. att skicka om produkten om kunden inte hittar den, eller åtminstone satt en tydlig deadline för återkoppling.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hej Li,</p><p>Tack för bilden! Jag förstår att det känns konstigt och frustrerande. Trots att vårt lagersaldo stämmer kan produkter ibland gömma sig i packpapper — kika gärna en extra gång.</p><p>Om du ändå inte hittar den efter det, hör av dig direkt så skickar vi en ny till dig utan krångel. Vi vill självklart att du ska få det du beställt! 😊</p><p>Med vänlig hälsning</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">empati</span><span class="ticket-tag">handlingskraft</span><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13167 — Ordre : 988070</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 14:05</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Dansk kund vars paket kom för sent till barnkalaset ville returnera. Flera svar hanterade returfrågor och avslutades med bekräftelse att returen bearbetas.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Fredrik förklarade returprocessen noggrant med kostnadsinfo, svarade på följdfråga om hur man fyller i returen, och Bittan bekräftade slutligen att återbetalning sker via ursprunglig betalningsmetod.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Utmärkt hantering i flera steg. Tydlig och korrekt info om returkostnader (59 vs 150 kr), praktisk hjälp med hur returportalen fungerar, och avslutande bekräftelse med vänlig ton. Kunden fick svar på alla frågor.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">returhantering</span><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13612 — 993800</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 14:01</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Norsk kund bad om att ändra utleveringssted men paketet hade redan skickats. Bittan meddelade att det tyvärr inte gick.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan apologiserade och informerade om att ändringen inte hann göras, utan att ge konkreta alternativ.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Tonen är varm men svaret saknar handlingskraft. Kunden lämnas utan information om vad som kan göras nu — t.ex. spårningslänk, möjlighet att omdirigera via PostNord, eller info om vad som händer om paketet inte hämtas ut.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hei Madelen,</p><p>Takk for meldingen 😊 Dessverre rakk vi ikke å endre utleveringsstedet før bestillingen ble sendt — beklager det!</p><p>Du kan følge pakken her: [spårningslänk]. Hvis du ønsker å endre utleveringssted kan du gjøre det direkte via PostNord med sporingsnummeret ditt. Ta gjerne kontakt igjen hvis du trenger hjelp!</p><p>Med vennlig hilsen</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13606 — Ordre 993772</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 13:50</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Engelskspråkig kund ville lägga till produkter i befintlig order. Bittan förklarade varför det inte är möjligt och gav tydliga alternativ.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan svarade på engelska med tydlig förklaring om lagerplock och Klarna-restriktioner, samt erbjöd möjlig fraktåterbetalning om paketen kombineras av lagret.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Professionellt och komplett svar på ett annat språk än modersmålet. Alla aspekter av kundens fråga bemöttes — systemrestriktioner, betalningsmetod och praktisk lösning. Tonen är vänlig trots ett negativt besked.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13611 — (No Subject)</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 13:48</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Svensk kund frågade om orderstatus. Bittan bekräftade att ordern är packad och på väg, inkluderade spårningslänk.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bekräftade leveransstatus och bifogade spårningslänk.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Effektivt och korrekt svar med konkret information. Spårningslänken är ett plus som ger kunden direkt kontroll.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span></div>
+</div>
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13614 — Ordernr:993299</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 13:46</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Svensk kund ville lägga till en produkt i ordern, men den var redan packad. Bittan meddelade att det inte var möjligt.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan informerade om att ordern är packad och att det inte gick att lägga till produkten, avslutade med 'Hoppas att det löser sig i alla fall'.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Informationen är korrekt men avslutningen är passiv och hjälplös. 'Hoppas det löser sig' är inte en lösning — ett erbjudande om att hjälpa med en ny order eller annan konkret assistans hade höjt svaret.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hej Sahra,</p><p>Tack för ditt mejl! Tyvärr var din beställning redan packad och på väg till plock när ditt meddelande kom in, vilket gör att vi inte kan lägga till produkter.</p><p>Om du vill kan du enkelt lägga en ny beställning på kalaskungen.se — om vårt lager råkar kombinera dem i samma paket återbetalar vi gärna en av frakterna när leveransen kommit fram.</p><p>Med vänlig hälsning</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">handlingskraft</span><span class="ticket-tag">tonläge</span></div>
+</div>
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13598 — Beställning</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 11:12</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kunden Lillemor kontaktade om en beställning. Bittan meddelade att ingen order hittades och bad kunden beställa på nytt.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan svarade att ingen beställning hittades via namn eller mejladress, och bad kunden beställa på nytt.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Svaret är för hastigt och saknar felsökning. Kunden kan ha använt en annan e-postadress, betalat som gäst, eller ha ett ordernummer att söka på. Att be kunden beställa på nytt utan vidare hjälp riskerar att kunden förlorar tilltro. Bättre att be om ordernummer eller payment-referens.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hej Lillemor,</p><p>Tack för ditt mejl! Jag hittar tyvärr ingen beställning på din e-postadress. Det kan hända att ordern lagts på en annan adress.</p><p>Kan du skicka ordernumret (börjar med 99…) eller kolla om du fått en orderbekräftelse på en annan mejladress? Så fort jag har ordernumret hittar jag din order direkt!</p><p>Med vänlig hälsning</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">handlingskraft</span><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13608 — Beställning order 993633</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 11:09</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kunden orolig för om beställning kommit in. Bittan bekräftade att ordern finns och skickas idag, och föreslog att bekräftelsen kanske hamnat i skräpposten.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bekräftade order och leverans idag, med praktiskt tips om skräppost.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Lugnt och handlingskraftigt svar som tar bort kundens oro direkt. Det praktiska tipset om skräppost är ett relevant tillägg.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13593 — Order 993455</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 11:04</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund med brådskande behov av leverans. Bittan prioriterade upp ordern för garanterad leverans samma dag.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bekräftade att hon prioriterat upp beställningen för leverans idag.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Kort, konkret och handlingskraftigt. Kunden fick exakt den reassurance hon behövde.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13591 — 993437</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 07:54</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund frågade om öppettider för upphämtning av order. Bittan informerade om vardagsöppettider 8:00-15:30 och bekräftade sedan en följdfråga.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan gav korrekt info om öppettider och bekräftade att kundens planerade besök fungerar.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Enkelt, korrekt och trevligt. Kunden fick all information hon behövde.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13550 — Fwd: Ordrebekræftelse på ordre 992412</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 07:50</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Dansk kund saknade varor i ordern inför födelsedag på fredag. Bittan bad om foto, identifierade problemet och skickade de saknade lila dukarna samma dag.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bad om foto, ursäktade sig och skickade de saknade varorna omedelbart med kommentaren att de förhoppningsvis hinner fram till festen på fredag.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Exemplarisk krishantering med rätt prioritering och urgency. Tonen är empatisk, handlingen är proaktiv och kommunikationen är tydlig. Det mänskliga tillägget om festen på fredag visar att handläggaren förstår kontexten.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">empati</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13587 — Order 992482</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 07:50</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund orolig för fördröjd leverans. Bittan förklarade tekniska problem med fraktsystemet dagen innan och gav konkret leveransprognos.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan förklarade fraktsystemsproblem, bekräftade att ordern skickas idag och gav leveransestimat till imorgon/torsdag.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Transparent och konkret. Att förklara orsaken (fraktsystemsproblem) skapar förståelse och förtroende. Leveransprognosen är tydlig. En liten formateringsmiss (saknat mellanslag) men inget som påverkar kundupplevelsen nämnvärt.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13529 — Felaktiga produkter</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 07:50</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund fick fel flipperspel. Bittan bad om foto, ursäktade sig, erbjöd kreditering och informerade om slut i lager, svarade sedan på fråga om restorder.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan ursäktade sig, bekräftade kreditering, informerade om att produkten är slut och att kunden kan bevaka artikeln för lagernotis.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Professionell och empatisk hantering av ett leveransfel. Kreditering utan krångel, tydlig info om lagerstatus, och ett konkret sätt för kunden att följa upp (bevakningsfunktionen).</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">returhantering</span><span class="ticket-tag">empati</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13510 — Mariolampa</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:56</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Reklamation av nattlampa som slutat lysa. Bittan erbjöd en ersättningslampa med skadad förpackning och hanterade sedan logistiken.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan erbjöd kreativt en lager-bexemplar med skadad kartong som ersättning, men det andra svaret innehåller en dubbelmening och stavfel ('moilnummer', upprepning av samma mening).</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Lösningen är utmärkt och kreativ. Tonen är varm. Men det andra svaret innehåller ett stavfel ('moilnummer' istället för 'mobilnummer') och en upprepad mening ('Och självklart skickar vi den till dig :) Och självklart...') som verkar vara en copy-paste miss. Sänker det professionella intrycket.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hej Maja,</p><p>Vad kul att det passar! Då skickar vi lampan till dig inom kort. Jag behöver bara ditt mobilnummer för leveransen — kan du skicka det?</p><p>Med vänlig hälsning</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13570 — Ändra i order</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:29</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Svensk kund ville lägga till produkter i befintlig order. Bittan förklarade begränsningarna och erbjöd alternativ.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan förklarade tydligt varför tillägg inte är möjligt (lager + Klarna) och erbjöd ny order med möjlig fraktåterbetalning.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Identiskt bra hantering som #13606. Alla aspekter bemöts, tonen är vänlig och kunden får konkreta alternativ trots negativt besked.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-needs_improvement" data-grade="needs_improvement">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13572 — Ballonger</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:28</div>
+    </div>
+    <span class="badge badge-needs_improvement">⚠️ Kunde gjorts bättre</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund hade problem med att slutföra köp på sajten, verkar ha haft ett postnummerproblem. Bittan svarade att det var ett tillfälligt fel.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan informerade om att det verkar ha rört sig om ett tillfälligt fel och att det fungerar nu med kundens postnummer.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Svaret är korrekt men ytligt. Det saknas information om kunden nu lyckats genomföra köpet, och inget erbjudande om hjälp om problemet kvarstår. Dessutom svarades på svenska trots att kunden skrivit på engelska — missmatch i kommunikationsspråk.</p><div class="alternative-box">
+          <div class="alt-label">💡 Alternativt svar</div>
+          <div class="alt-content"><p>Hi Annette,</p><p>Thank you for reaching out! It appears this was a temporary issue — I just tested with your postcode and it's working correctly now.</p><p>Please try again and let us know if you run into any more trouble. We're happy to help!</p><p>Best regards</p><p>Bittan Åberg</p></div>
+        </div></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13577 — Rechnungserstellung</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:25</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Tysk kund bad om faktura. Bittan förklarade att orderbekräftelsen är kvittot och att betalning hanteras via Klarna.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan förklarade detaljerat vad orderbekräftelsen innehåller, hur Klarna-betalningen fungerar och gav tips om att kolla skräppost.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Korrekt och tydlig information på välformulerad tyska. Kunden får svar på exakt vad hon frågat om med konkreta hänvisningar.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13584 — (No Subject)</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:22</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Holländsk kund undrar om leverans hinner fram till barnkalas. Bittan bekräftade att ordern skickas idag med 2-4 dagars leveranstid.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan svarade på holländska, bekräftade leverans idag och gav realistisk leveransprognos utan att lova för mycket.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Varm ton på rätt språk, realistisk information utan falskt hopp, och ett mänskligt avslut med lyckönskningar inför festen.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span><span class="ticket-tag">empati</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13585 — Bestellung</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:16</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Tysk kund ville ändra e-postadress på sin order. Bittan bekräftade att hon gjort ändringen direkt.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bekräftade att e-postadressen uppdaterats omedelbart.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Snabbt, korrekt och handlingskraftigt. Kunden fick exakt det hon bad om utan krångel.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">handlingskraft</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13586 — Fwd: Ordrebekræftelse på ordre 993700</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:12</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Dansk kund ville avboka sin order. Bittan bekräftade annulleringen och informerade om återbetalning via Klarna.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan bekräftade annullering, informerade om Klarna-återbetalning och angav tidslinje på upp till 24 timmar.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Tydlig och korrekt hantering av avbokning. Kunden får all nödvändig information om processen och vad som händer härnäst.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">returhantering</span><span class="ticket-tag">tydlighet</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13555 — Fel i leverans</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:07</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Kund Ylva saknade tetriskuber i leveransen. Bittan ursäktade sig och skickade de saknade varorna samma dag.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan ursäktade sig upprepade gånger och skickade de saknade produkterna omedelbart utan att begära bevis.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Proaktivt och utmärkt. Kunden slapp bevisbörda och fick en omedelbar lösning. Dubbel ursäkt kan vara lite mycket men signalerar genuint engagemang.</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">handlingskraft</span><span class="ticket-tag">empati</span></div>
+</div>
+<div class="ticket-card grade-good" data-grade="good">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">#13545 — Hello kitty bezorgd?</div>
+      <div class="ticket-meta"> · Stängt: 2026-05-19 05:06</div>
+    </div>
+    <span class="badge badge-good">✅ Bra</span>
+  </div>
+  <hr class="divider">
+  <div class="section-label">Sammanfattning</div>
+  <div class="section-content"><p>Holländsk kund Renate undrade om Hello Kitty-leverans hinner fram till barnkalas. Bittan bekräftade att paketet borde komma idag eller imorgon.</p></div>
+  <div class="section-label">Handläggarens svar</div>
+  <div class="section-content"><p>Bittan svarade på holländska med uppdaterad leveransstatus och varma lyckönskningar inför festen.</p></div>
+  <div class="section-label">Bedömning</div>
+  <div class="section-content"><p>Varm, korrekt och empatisk hantering. Svarade på rätt språk och visade förståelse för kontexten (barnkalas).</p></div>
+  <div class="ticket-tags"><span class="ticket-tag">leveransfråga</span><span class="ticket-tag">empati</span></div>
+</div>
+    <div class="no-results" id="no-results">Inga ärenden matchar filtret.</div>
+  </div>
+</div>
+</div>
+<script>
+var currentFilter = 'all';
+function filterCards(grade) {
+  currentFilter = grade;
+  var cards = document.querySelectorAll('.ticket-card');
+  var visible = 0;
+  cards.forEach(function(c) {
+    var show = grade === 'all' || c.dataset.grade === grade;
+    c.style.display = show ? 'block' : 'none';
+    if (show) visible++;
+  });
+  document.querySelectorAll('.filter-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.filter === grade);
+  });
+  var noRes = document.getElementById('no-results');
+  if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+}
+</script>
+</body>
+</html>
