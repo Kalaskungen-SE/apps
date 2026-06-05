@@ -376,5 +376,12 @@
     "good": 21,
     "needs_improvement": 2,
     "poor": 0
+  },
+  {
+    "date": "2026-06-05",
+    "total": 11,
+    "good": 7,
+    "needs_improvement": 4,
+    "poor": 0
   }
 ]
