@@ -502,5 +502,12 @@
     "good": 13,
     "needs_improvement": 3,
     "poor": 0
+  },
+  {
+    "date": "2026-07-01",
+    "total": 12,
+    "good": 7,
+    "needs_improvement": 5,
+    "poor": 0
   }
 ]
