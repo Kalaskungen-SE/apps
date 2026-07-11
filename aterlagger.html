@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Återläggning — Kalaskungen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e3a8a;
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --radius: 12px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    header .inner {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 20px; font-weight: 700; flex: 1; }
+    header .count-badge {
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* ── Scan area ── */
+    .scan-area {
+      background: var(--surface);
+      margin: 16px;
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .scan-area label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .scan-row {
+      display: flex;
+      gap: 10px;
+    }
+    #scan-input {
+      flex: 1;
+      font-size: 18px;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fafafa;
+    }
+    #scan-input:focus {
+      border-color: var(--primary);
+      background: white;
+    }
+    #scan-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 22px;
+      font-weight: 300;
+      cursor: pointer;
+      white-space: nowrap;
+      line-height: 1;
+    }
+    #scan-btn:active { background: var(--primary-dark); }
+
+    /* ── Feedback toast ── */
+    #feedback {
+      margin: 0 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      display: none;
+      transition: opacity 0.3s;
+    }
+    #feedback.ok  { background: var(--success-bg); color: var(--success); display: block; }
+    #feedback.err { background: #fef2f2; color: #dc2626; display: block; }
+    #feedback.dup { background: var(--warn-bg); color: #92400e; display: block; }
+
+    /* ── Action bar ── */
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      margin: 12px 16px;
+    }
+    .action-bar button {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .action-bar button:active { background: #f0f0f0; }
+    #btn-sort { border-color: var(--primary); color: var(--primary); }
+    #btn-sort.active { background: var(--primary); color: white; }
+    #btn-clear { border-color: #dc2626; color: #dc2626; }
+
+    /* ── Empty state ── */
+    #empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    #empty-state .icon { font-size: 56px; margin-bottom: 12px; }
+    #empty-state p { font-size: 16px; }
+
+    /* ── List ── */
+    #article-list {
+      margin: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .article-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 4px 12px;
+      align-items: center;
+      border-left: 5px solid var(--border);
+      position: relative;
+      transition: opacity 0.2s;
+    }
+    .article-img {
+      grid-row: 1 / 3;
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #f0f2f5;
+    }
+    .article-img-placeholder {
+      grid-row: 1 / 3;
+      width: 52px;
+      height: 52px;
+      border-radius: 6px;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #9ca3af;
+    }
+    .article-card.done {
+      opacity: 0.45;
+      border-left-color: var(--success);
+    }
+    .article-card.no-loc {
+      border-left-color: var(--warn);
+    }
+
+    .bin-number {
+      grid-row: 1 / 3;
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+      min-width: 80px;
+      letter-spacing: -0.5px;
+    }
+    .bin-number.unknown {
+      font-size: 14px;
+      color: var(--warn);
+      font-weight: 600;
+    }
+
+    .article-name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+      grid-column: 2;
+    }
+    .article-meta {
+      font-size: 12px;
+      color: var(--muted);
+      grid-column: 2;
+    }
+
+    .check-btn {
+      grid-row: 1 / 3;
+      margin-left: auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      color: var(--muted);
+      font-size: 0;  /* dölj ev. text */
+    }
+    .check-btn::after {
+      content: '';
+      display: block;
+      width: 14px;
+      height: 8px;
+      border-left: 2.5px solid var(--muted);
+      border-bottom: 2.5px solid var(--muted);
+      transform: rotate(-45deg) translateY(-2px);
+      opacity: 0.35;
+    }
+    .check-btn:active { transform: scale(0.9); }
+    .article-card.done .check-btn {
+      background: var(--success-bg);
+      border-color: var(--success);
+    }
+    .article-card.done .check-btn::after {
+      border-color: var(--success);
+      opacity: 1;
+    }
+
+    /* ── Heading row (lagerplats group) ── */
+    .group-heading {
+      padding: 6px 0 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── DB status bar ── */
+    #db-status {
+      text-align: center;
+      padding: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 8px 16px 0;
+    }
+
+    /* ── Progress ── */
+    .progress-bar-wrap {
+      margin: 0 16px 4px;
+      background: #e9ecef;
+      border-radius: 10px;
+      height: 6px;
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      background: var(--success);
+      border-radius: 10px;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    #progress-text {
+      text-align: right;
+      margin: 0 16px 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <span style="font-size:28px">📦</span>
+    <h1>Återläggning</h1>
+    <span class="count-badge" id="header-count">0 varor</span>
+  </div>
+</header>
+
+<div class="page-wrap">
+
+<div class="scan-area">
+  <label>Skanna streckkod eller ange EAN</label>
+  <div class="scan-row">
+    <input
+      type="text"
+      id="scan-input"
+      inputmode="text"
+      placeholder="Skanna eller skriv EAN..."
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      autofocus
+    >
+    <button id="scan-btn">+</button>
+  </div>
+</div>
+
+<div id="feedback"></div>
+<div id="db-status">Laddar databas...</div>
+
+<div class="action-bar" id="action-bar" style="display:none">
+  <button id="btn-sort">🗂 Sortera på plats</button>
+  <button id="btn-clear">🗑 Rensa lista</button>
+</div>
+
+<div class="progress-bar-wrap" id="progress-wrap" style="display:none">
+  <div id="progress-bar"></div>
+</div>
+<div id="progress-text" style="display:none"></div>
+
+<div id="empty-state">
+  <div class="icon">🛒</div>
+  <p>Skanna varor för att lägga till dem i listan.</p>
+</div>
+
+<div id="article-list"></div>
+
+</div><!-- /page-wrap -->
+
+<script>
+// ─────────────────────────────────────────────
+// Databas — laddas från aterlagger_db.json
+// Stöder flera EAN per artikel (fält: eans[])
+// ─────────────────────────────────────────────
+let db = {};         // { ean: artikel }  — alla EAN inklusive extra koder
+let dbByCode = {};   // { stockCode: artikel }
+let dbLoaded = false;
+let dbDate = "";
+
+const DB_URL = "https://raw.githubusercontent.com/Kalaskungen-SE/apps/main/aterlagger_db.json";
+
+async function loadDB() {
+  const statusEl = document.getElementById("db-status");
+  try {
+    // Försök med GitHub rådata, fallback till relativ sökväg
+    let resp;
+    try {
+      resp = await fetch(DB_URL + "?t=" + Date.now());
+      if (!resp.ok) throw new Error("GitHub fetch misslyckades");
+    } catch {
+      resp = await fetch("aterlagger_db.json?t=" + Date.now());
+    }
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    dbDate = data.generated_at || "";
+
+    for (const art of data.articles || []) {
+      // Indexera alla EAN-koder (eans[] innehåller alla, ean är primär)
+      const allEans = art.eans && art.eans.length > 0
+        ? art.eans
+        : (art.ean ? [art.ean] : []);
+      for (const ean of allEans) {
+        if (ean) db[ean] = art;
+      }
+      dbByCode[art.stockCode] = art;
+    }
+
+    const withLoc  = (data.articles || []).filter(a => a.binNumber).length;
+    const multiEan = (data.articles || []).filter(a => (a.eans||[]).length > 1).length;
+    const dateStr  = dbDate ? new Date(dbDate).toLocaleDateString("sv-SE") : "okänt datum";
+    statusEl.textContent = `✅ Databas uppdaterad ${dateStr}`;
+    dbLoaded = true;
+  } catch (e) {
+    statusEl.textContent = `⚠️ Databas ej tillgänglig (${e.message}) — sökning fungerar ej`;
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let scanned = [];   // [{ean, stockCode, name, binNumber, done}]
+let sortMode = false;
+
+function lookup(input) {
+  const clean = input.trim().replace(/\s+/g, "");
+  if (!clean) return null;
+
+  // Försök EAN-match (täcker alla registrerade EAN inkl. extra leverantörskoder)
+  if (db[clean]) return db[clean];
+
+  // Försök stockCode-match
+  if (dbByCode[clean]) return dbByCode[clean];
+
+  return null;
+}
+
+// ─────────────────────────────────────────────
+// Skanning
+// ─────────────────────────────────────────────
+function handleScan(value) {
+  const clean = value.trim();
+  if (!clean) return;
+
+  document.getElementById("scan-input").value = "";
+  document.getElementById("scan-input").focus();
+
+  const feedback = document.getElementById("feedback");
+
+  if (!dbLoaded) {
+    showFeedback("err", "⚠️ Databasen är inte laddad ännu. Vänta en stund.");
+    return;
+  }
+
+  // Kolla om redan skannad
+  const existing = scanned.find(a => a.ean === clean || a.stockCode === clean);
+  if (existing) {
+    showFeedback("dup", `🔁 Redan skannad: ${existing.name}`);
+    return;
+  }
+
+  const art = lookup(clean);
+  if (!art) {
+    showFeedback("err", `❌ Okänd EAN: ${clean} — finns ej i databasen`);
+    return;
+  }
+
+  scanned.unshift({ ...art, done: false });  // Lägg överst så senast skannade syns direkt
+  const loc = art.binNumber ? art.binNumber : "Plats okänd";
+  showFeedback("ok", `✅ ${art.name} → ${loc}`);
+
+  render();
+  // Scrolla till toppen av listan så den nyligen skannade syns
+  document.getElementById("article-list").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function showFeedback(type, msg) {
+  const el = document.getElementById("feedback");
+  el.className = type;
+  el.textContent = msg;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => {
+    el.className = "";
+    el.style.display = "none";
+  }, 3000);
+}
+
+// ─────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────
+function render(preserveScroll = false) {
+  const scrollY = preserveScroll ? window.scrollY : null;
+  const list = document.getElementById("article-list");
+  const empty = document.getElementById("empty-state");
+  const actionBar = document.getElementById("action-bar");
+  const progressWrap = document.getElementById("progress-wrap");
+  const progressText = document.getElementById("progress-text");
+  const headerCount = document.getElementById("header-count");
+
+  const total = scanned.length;
+  const done  = scanned.filter(a => a.done).length;
+
+  headerCount.textContent = `${total} vara${total !== 1 ? "r" : ""}`;
+
+  if (total === 0) {
+    empty.style.display = "block";
+    list.innerHTML = "";
+    actionBar.style.display = "none";
+    progressWrap.style.display = "none";
+    progressText.style.display = "none";
+    return;
+  }
+
+  empty.style.display = "none";
+  actionBar.style.display = "flex";
+  progressWrap.style.display = "block";
+  progressText.style.display = "block";
+
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById("progress-bar").style.width = pct + "%";
+  progressText.textContent = `${done} av ${total} återlagda (${pct}%)`;
+
+  // Sortera
+  let items = [...scanned];
+  if (sortMode) {
+    items.sort((a, b) => {
+      const ba = a.binNumber || "ZZZZZ";
+      const bb = b.binNumber || "ZZZZZ";
+      return ba.localeCompare(bb, "sv", { numeric: true });
+    });
+  }
+
+  list.innerHTML = items.map((art, idx) => {
+    const realIdx = scanned.indexOf(art);
+    const hasLoc  = !!art.binNumber;
+    const binHTML = hasLoc
+      ? `<div class="bin-number">${art.binNumber}</div>`
+      : `<div class="bin-number unknown">Plats okänd</div>`;
+    const doneClass = art.done ? " done" : "";
+    const noLocClass = !hasLoc ? " no-loc" : "";
+    const checkIcon = "";  // Bockmark renderas via CSS ::after
+    const metaLine = `EAN: ${art.ean || "—"} · Art: ${art.stockCode || "—"}`;
+    // Prova .jpg, fallback .jpeg, fallback placeholder
+    const imgSrc = art.imageUrl || '';
+    const imgSrcJpeg = imgSrc.replace(/\.jpg($|\?)/, '.jpeg$1');
+    const imgHTML = imgSrc
+      ? `<img class="article-img" src="${imgSrc}" alt="" loading="lazy"
+           onerror="if(this.src.endsWith('.jpg')){this.src='${imgSrcJpeg}'}else{this.outerHTML='<div class=\'article-img-placeholder\'>📦</div>'}">`
+      : `<div class="article-img-placeholder">📦</div>`;
+
+    return `
+      <div class="article-card${doneClass}${noLocClass}" data-idx="${realIdx}">
+        ${binHTML}
+        ${imgHTML}
+        <div class="article-name">${escHTML(art.name)}</div>
+        <div class="article-meta">${metaLine}</div>
+        <button class="check-btn" onclick="toggleDone(${realIdx})">${checkIcon}</button>
+      </div>`;
+  }).join("");
+
+  // Återställ scroll-position efter omritning
+  if (scrollY !== null) {
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
+  }
+}
+
+function toggleDone(idx) {
+  if (scanned[idx]) {
+    scanned[idx].done = !scanned[idx].done;
+    render(true);  // preserveScroll=true
+  }
+}
+
+function escHTML(str) {
+  return (str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ─────────────────────────────────────────────
+// Event listeners
+// ─────────────────────────────────────────────
+document.getElementById("scan-btn").addEventListener("click", () => {
+  handleScan(document.getElementById("scan-input").value);
+});
+
+// Primär trigger: Enter-tangent i inputfältet
+document.getElementById("scan-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    handleScan(e.target.value);
+  }
+});
+
+// iOS Safari-fix: Bluetooth-skannrar på iPad skickar Enter som "Go" på soft keyboard
+// Vi lyssnar på 'input'-event med snabb-timer — om värdet inte ändras på 300ms = klart
+let inputTimer = null;
+document.getElementById("scan-input").addEventListener("input", (e) => {
+  clearTimeout(inputTimer);
+  const val = e.target.value;
+  if (!val) return;
+  // Skannrar matar in EAN (8-13 siffror) på <50ms. Vänta 350ms utan ny input = klart.
+  inputTimer = setTimeout(() => {
+    if (document.getElementById("scan-input").value === val && val.length >= 4) {
+      handleScan(val);
+    }
+  }, 350);
+});
+
+// Fallback: håll fokus på input-fältet när man tappar det
+document.getElementById("scan-input").addEventListener("blur", () => {
+  // Liten fördröjning så knappar etc. fortfarande funkar
+  setTimeout(() => {
+    const active = document.activeElement;
+    const isBtn = active && (active.tagName === "BUTTON" || active.closest("button"));
+    if (!isBtn) {
+      document.getElementById("scan-input").focus();
+    }
+  }, 200);
+});
+
+// Backup-buffer för skannrar som inte ger fokus alls
+let scanBuffer = "";
+let scanTimer = null;
+document.addEventListener("keydown", (e) => {
+  if (document.activeElement === document.getElementById("scan-input")) return;
+  if (e.key === "Enter" && scanBuffer.length >= 4) {
+    handleScan(scanBuffer);
+    scanBuffer = "";
+    clearTimeout(scanTimer);
+    return;
+  }
+  if (e.key.length === 1) {
+    scanBuffer += e.key;
+    clearTimeout(scanTimer);
+    scanTimer = setTimeout(() => { scanBuffer = ""; }, 300);
+  }
+});
+
+document.getElementById("btn-sort").addEventListener("click", () => {
+  sortMode = !sortMode;
+  document.getElementById("btn-sort").classList.toggle("active", sortMode);
+  render();
+});
+
+document.getElementById("btn-clear").addEventListener("click", () => {
+  if (scanned.length === 0) return;
+  if (confirm(`Rensa alla ${scanned.length} varor från listan?`)) {
+    scanned = [];
+    render();
+  }
+});
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+loadDB();
+document.getElementById("scan-input").focus();
+</script>
+</body>
+</html>
