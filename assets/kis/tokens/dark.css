@@ -1,0 +1,56 @@
+/* KIS · Mörkt läge — aktiveras med [data-theme="dark"] på <html> eller klassen .kis-dark */
+
+:root[data-theme="dark"],
+.kis-dark {
+  --surface-page: #10151C;
+  --surface-card: #1A212B;
+  --surface-raised: #212A36;
+  --surface-sunken: #0D1117;
+  --surface-sidebar: rgba(20, 26, 34, 0.72);
+  --surface-topbar: rgba(20, 26, 34, 0.78);
+
+  --bg-aurora:
+    radial-gradient(1100px 520px at 8% -10%, rgba(94, 143, 223, 0.14), transparent 60%),
+    radial-gradient(900px 480px at 95% 0%, rgba(228, 146, 75, 0.08), transparent 55%),
+    radial-gradient(1000px 600px at 55% 115%, rgba(85, 186, 126, 0.08), transparent 55%);
+
+  --text-1: #EDF1F6;
+  --text-2: #9AA7B5;
+  --text-3: #5F6B79;
+  --text-link: var(--kis-blue-300);
+
+  --border-1: rgba(255, 255, 255, 0.09);
+  --border-2: rgba(255, 255, 255, 0.16);
+
+  --accent-primary: var(--kis-blue-400);
+  --accent-primary-hover: var(--kis-blue-300);
+  --accent-primary-soft: rgba(94, 143, 223, 0.14);
+
+  --status-ok: var(--kis-green-400);
+  --status-ok-bg: rgba(85, 186, 126, 0.14);
+  --status-warn: var(--kis-orange-400);
+  --status-warn-bg: rgba(228, 146, 75, 0.14);
+  --status-info: var(--kis-blue-400);
+  --status-info-bg: rgba(94, 143, 223, 0.14);
+  --status-error: #E06C6C;
+  --status-error-bg: rgba(214, 69, 69, 0.16);
+
+  --glass-bg: rgba(26, 33, 43, 0.55);
+  --glass-bg-strong: rgba(26, 33, 43, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-outer: rgba(0, 0, 0, 0.4);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
+
+  --grad-kpi-blue:   linear-gradient(140deg, rgba(94, 143, 223, 0.16) 0%, rgba(94, 143, 223, 0.04) 55%, transparent 100%);
+  --grad-kpi-orange: linear-gradient(140deg, rgba(228, 146, 75, 0.15) 0%, rgba(228, 146, 75, 0.04) 55%, transparent 100%);
+  --grad-kpi-green:  linear-gradient(140deg, rgba(85, 186, 126, 0.15) 0%, rgba(85, 186, 126, 0.04) 55%, transparent 100%);
+  --grad-kpi-neutral: linear-gradient(140deg, rgba(154, 167, 181, 0.10) 0%, rgba(154, 167, 181, 0.03) 55%, transparent 100%);
+
+  --chart-1: var(--kis-blue-400);
+  --chart-2: var(--kis-orange-400);
+  --chart-3: var(--kis-green-400);
+}
+

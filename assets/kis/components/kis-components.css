@@ -1,0 +1,334 @@
+/* KIS · Komponentklasser — allt prefixat kis-. Detta är API:t som agenter (t.ex. Krabban)
+   applicerar på webbappar, dashboards och rapporter. */
+
+/* ============ Knappar ============ */
+.kis-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 38px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+.kis-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.kis-btn--primary { background: var(--accent-primary); color: var(--text-on-accent); box-shadow: var(--shadow-sm); }
+.kis-btn--primary:hover:not(:disabled) { background: var(--accent-primary-hover); }
+
+.kis-btn--secondary { background: var(--surface-card); color: var(--text-1); border-color: var(--border-2); box-shadow: var(--shadow-sm); }
+.kis-btn--secondary:hover:not(:disabled) { border-color: var(--kis-neutral-400); }
+
+.kis-btn--ghost { background: transparent; color: var(--text-2); }
+.kis-btn--ghost:hover:not(:disabled) { background: var(--accent-primary-soft); color: var(--accent-primary); }
+
+.kis-btn--danger { background: var(--status-error); color: #fff; }
+.kis-btn--danger:hover:not(:disabled) { background: var(--kis-red-700); }
+
+.kis-btn--sm { height: 30px; padding: 0 var(--space-3); font-size: var(--text-xs); border-radius: var(--radius-sm); }
+.kis-btn--lg { height: 46px; padding: 0 var(--space-6); font-size: var(--text-base); }
+
+/* ============ Formulär ============ */
+.kis-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-2);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
+.kis-input, .kis-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-2);
+  background: var(--surface-card);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.kis-input::placeholder { color: var(--text-3); }
+.kis-input:focus, .kis-select:focus { border-color: var(--border-focus); box-shadow: var(--focus-ring); outline: none; }
+.kis-field { display: flex; flex-direction: column; gap: 0; }
+
+/* ============ Kort ============ */
+.kis-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-5);
+}
+
+/* Glaspanel — liquid glass. Kräver innehåll bakom (aurora-bakgrunden) för full effekt. */
+.kis-glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-outer);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-glass);
+  padding: var(--space-5);
+}
+.kis-glass--strong { background: var(--glass-bg-strong); }
+
+/* ============ KPI-kort ============ */
+.kis-kpi {
+  position: relative;
+  background-color: var(--surface-card);
+  background-image: var(--grad-kpi-neutral);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow: hidden;
+}
+.kis-kpi--blue   { background-image: var(--grad-kpi-blue); }
+.kis-kpi--orange { background-image: var(--grad-kpi-orange); }
+.kis-kpi--green  { background-image: var(--grad-kpi-green); }
+
+.kis-kpi__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+.kis-kpi__value {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.kis-kpi__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+.kis-kpi__delta--up   { color: var(--status-ok); }
+.kis-kpi__delta--down { color: var(--status-error); }
+.kis-kpi__delta--flat { color: var(--text-3); }
+.kis-kpi__hint { font-size: var(--text-xs); color: var(--text-3); }
+
+/* Rutnät för KPI-rader */
+.kis-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ============ Badges, taggar, status ============ */
+.kis-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  background: var(--surface-sunken);
+  color: var(--text-2);
+}
+.kis-badge--blue   { background: var(--status-info-bg);  color: var(--status-info); }
+.kis-badge--green  { background: var(--status-ok-bg);    color: var(--status-ok); }
+.kis-badge--orange { background: var(--status-warn-bg);  color: var(--status-warn); }
+.kis-badge--red    { background: var(--status-error-bg); color: var(--status-error); }
+
+.kis-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-1);
+  background: var(--surface-card);
+  font-size: var(--text-xs);
+  color: var(--text-2);
+}
+
+.kis-status { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-1); }
+.kis-status::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--text-3);
+  flex: none;
+}
+.kis-status--ok::before    { background: var(--status-ok); }
+.kis-status--warn::before  { background: var(--status-warn); }
+.kis-status--error::before { background: var(--status-error); }
+.kis-status--info::before  { background: var(--status-info); }
+
+/* ============ Navigation: sidebar ============ */
+.kis-sidebar {
+  width: var(--sidebar-width);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+  background: var(--surface-sidebar);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-right: 1px solid var(--border-1);
+}
+.kis-sidebar__brand {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  padding: var(--space-2) var(--space-3) var(--space-4);
+  letter-spacing: -0.01em;
+}
+.kis-sidebar__brand em { color: var(--accent-primary); font-style: normal; }
+.kis-sidebar__section {
+  font-size: var(--text-xs);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  padding: var(--space-4) var(--space-3) var(--space-1);
+}
+.kis-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-2);
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.kis-sidebar__item:hover { background: var(--accent-primary-soft); color: var(--text-1); }
+.kis-sidebar__item--active { background: var(--accent-primary); color: var(--text-on-accent); box-shadow: var(--shadow-sm); }
+.kis-sidebar__item--active:hover { background: var(--accent-primary); color: var(--text-on-accent); }
+
+/* ============ Navigation: topbar ============ */
+.kis-topbar {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-6);
+  background: var(--surface-topbar);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-bottom: 1px solid var(--border-1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.kis-topbar__title { font-size: var(--text-md); font-weight: var(--weight-bold); }
+
+/* ============ Navigation: tabs ============ */
+.kis-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  width: max-content;
+}
+.kis-tab {
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-2);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+.kis-tab:hover { color: var(--text-1); }
+.kis-tab--active { background: var(--surface-card); color: var(--text-1); box-shadow: var(--shadow-sm); }
+
+/* Understrukna tabs (för rapporter) */
+.kis-tabs--line { background: none; padding: 0; border-bottom: 1px solid var(--border-1); border-radius: 0; gap: var(--space-5); width: 100%; }
+.kis-tabs--line .kis-tab { padding: var(--space-2) 0; border-radius: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.kis-tabs--line .kis-tab--active { background: none; box-shadow: none; border-bottom-color: var(--accent-primary); color: var(--accent-primary); }
+
+/* ============ Tabell ============ */
+.kis-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.kis-table th {
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+}
+.kis-table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-1);
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+.kis-table tr:last-child td { border-bottom: none; }
+.kis-table tbody tr { transition: background-color var(--duration-fast) var(--ease-out); }
+.kis-table tbody tr:hover { background: var(--accent-primary-soft); }
+.kis-table .num { text-align: right; font-family: var(--font-mono); font-size: var(--text-xs); }
+
+/* ============ Rapport ============ */
+.kis-report {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--surface-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-12) var(--space-10);
+}
+.kis-report__kicker {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+.kis-report h1 { font-size: var(--text-2xl); margin: var(--space-2) 0 var(--space-1); }
+.kis-report__meta { font-size: var(--text-sm); color: var(--text-3); }
+.kis-report hr { border: none; border-top: 1px solid var(--border-1); margin: var(--space-6) 0; }
+
+@media print {
+  body { background: #fff; }
+  .kis-report { border: none; box-shadow: none; padding: 0; max-width: none; }
+}
+
+/* ============ Sidlayout ============ */
+.kis-app { display: flex; height: 100vh; overflow: hidden; }
+.kis-main { flex: 1; overflow-y: auto; }
+.kis-content { max-width: var(--content-max); margin: 0 auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-6); }
+.kis-page-title { font-size: var(--text-xl); letter-spacing: -0.01em; }
+.kis-page-sub { font-size: var(--text-sm); color: var(--text-2); margin-top: var(--space-1); }
+

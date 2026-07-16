@@ -1,0 +1,28 @@
+<!-- @dsCard group="Components" viewport="700x280" name="Navigation — Sidebar, Tabs" -->
+<!DOCTYPE html><html><head><link rel="stylesheet" href="../../styles.css"></head>
+<body style="padding:0;background:var(--surface-page);background-image:var(--bg-aurora)">
+<div style="display:flex;height:280px">
+  <nav class="kis-sidebar" style="height:100%">
+    <div class="kis-sidebar__brand">KIS<em>.</em></div>
+    <div class="kis-sidebar__section">Analys</div>
+    <button class="kis-sidebar__item kis-sidebar__item--active">Dashboard</button>
+    <button class="kis-sidebar__item">Rapporter <span class="kis-badge" style="margin-left:auto">3</span></button>
+    <button class="kis-sidebar__item">Försäljning</button>
+    <div class="kis-sidebar__section">System</div>
+    <button class="kis-sidebar__item">Inställningar</button>
+  </nav>
+  <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:20px">
+    <div class="kis-tabs">
+      <button class="kis-tab kis-tab--active">Dag</button>
+      <button class="kis-tab">Vecka</button>
+      <button class="kis-tab">Månad</button>
+    </div>
+    <div class="kis-tabs kis-tabs--line">
+      <button class="kis-tab kis-tab--active">Översikt</button>
+      <button class="kis-tab">Produkter</button>
+      <button class="kis-tab">Kanaler</button>
+    </div>
+  </div>
+</div>
+</body></html>
+

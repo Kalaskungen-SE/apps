@@ -1,0 +1,118 @@
+/* KIS — Kalaskungen Intelligence System · Färgtokens
+   Primär: blå. Accenter: orange + grön. Ljusa, subtilt tonade bakgrunder. */
+
+:root {
+  /* ---- Blå (primär) ---- */
+  --kis-blue-50:  #F2F6FD;
+  --kis-blue-100: #E1EBFA;
+  --kis-blue-200: #C3D6F5;
+  --kis-blue-300: #94B6EC;
+  --kis-blue-400: #5E8FDF;
+  --kis-blue-500: #3A6FD0;
+  --kis-blue-600: #2A58B4;
+  --kis-blue-700: #234690;
+  --kis-blue-800: #1E3A73;
+  --kis-blue-900: #16294F;
+
+  /* ---- Orange (accent) ---- */
+  --kis-orange-50:  #FDF6EF;
+  --kis-orange-100: #FAE9D8;
+  --kis-orange-200: #F5D3B0;
+  --kis-orange-300: #EDB37B;
+  --kis-orange-400: #E4924B;
+  --kis-orange-500: #D97728;
+  --kis-orange-600: #B95E1B;
+  --kis-orange-700: #934A18;
+  --kis-orange-800: #713A17;
+  --kis-orange-900: #4C2711;
+
+  /* ---- Grön (accent) ---- */
+  --kis-green-50:  #F0FAF4;
+  --kis-green-100: #DCF3E5;
+  --kis-green-200: #B9E6CB;
+  --kis-green-300: #8AD3A7;
+  --kis-green-400: #55BA7E;
+  --kis-green-500: #2F9E5F;
+  --kis-green-600: #22804B;
+  --kis-green-700: #1E653E;
+  --kis-green-800: #1A5034;
+  --kis-green-900: #123A25;
+
+  /* ---- Röd (endast fel/negativt) ---- */
+  --kis-red-50:  #FDF2F2;
+  --kis-red-100: #FAE3E3;
+  --kis-red-500: #D64545;
+  --kis-red-600: #B93838;
+  --kis-red-700: #942E2E;
+
+  /* ---- Neutraler (kallt tonade) ---- */
+  --kis-neutral-0:   #FFFFFF;
+  --kis-neutral-50:  #F7F9FB;
+  --kis-neutral-100: #EEF2F6;
+  --kis-neutral-200: #DFE5EC;
+  --kis-neutral-300: #C7D0DA;
+  --kis-neutral-400: #9AA7B5;
+  --kis-neutral-500: #6C7A89;
+  --kis-neutral-600: #4E5A68;
+  --kis-neutral-700: #3A4450;
+  --kis-neutral-800: #262E38;
+  --kis-neutral-900: #151A21;
+
+  /* ---- Semantiska ytor ---- */
+  --surface-page: #F5F8FB;
+  --surface-card: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: var(--kis-neutral-100);
+  --surface-sidebar: rgba(255, 255, 255, 0.72);
+  --surface-topbar: rgba(255, 255, 255, 0.78);
+
+  /* Subtil "aurora"-bakgrund för sidor och hero-ytor */
+  --bg-aurora:
+    radial-gradient(1100px 520px at 8% -10%, rgba(58, 111, 208, 0.10), transparent 60%),
+    radial-gradient(900px 480px at 95% 0%, rgba(217, 119, 40, 0.07), transparent 55%),
+    radial-gradient(1000px 600px at 55% 115%, rgba(47, 158, 95, 0.07), transparent 55%);
+
+  /* ---- Semantisk text ---- */
+  --text-1: var(--kis-neutral-900);
+  --text-2: var(--kis-neutral-600);
+  --text-3: var(--kis-neutral-400);
+  --text-on-accent: #FFFFFF;
+  --text-link: var(--kis-blue-600);
+
+  /* ---- Kanter ---- */
+  --border-1: var(--kis-neutral-200);
+  --border-2: var(--kis-neutral-300);
+  --border-focus: var(--kis-blue-500);
+
+  /* ---- Accenter, semantiska ---- */
+  --accent-primary: var(--kis-blue-600);
+  --accent-primary-hover: var(--kis-blue-700);
+  --accent-primary-soft: var(--kis-blue-50);
+  --accent-orange: var(--kis-orange-500);
+  --accent-green: var(--kis-green-600);
+
+  /* ---- Status ---- */
+  --status-ok: var(--kis-green-600);
+  --status-ok-bg: var(--kis-green-50);
+  --status-warn: var(--kis-orange-600);
+  --status-warn-bg: var(--kis-orange-50);
+  --status-info: var(--kis-blue-600);
+  --status-info-bg: var(--kis-blue-50);
+  --status-error: var(--kis-red-600);
+  --status-error-bg: var(--kis-red-50);
+
+  /* ---- KPI-korttoningar (subtila) ---- */
+  --grad-kpi-blue:   linear-gradient(140deg, rgba(58, 111, 208, 0.10) 0%, rgba(58, 111, 208, 0.02) 55%, rgba(255, 255, 255, 0) 100%);
+  --grad-kpi-orange: linear-gradient(140deg, rgba(217, 119, 40, 0.10) 0%, rgba(217, 119, 40, 0.02) 55%, rgba(255, 255, 255, 0) 100%);
+  --grad-kpi-green:  linear-gradient(140deg, rgba(47, 158, 95, 0.10) 0%, rgba(47, 158, 95, 0.02) 55%, rgba(255, 255, 255, 0) 100%);
+  --grad-kpi-neutral: linear-gradient(140deg, rgba(108, 122, 137, 0.08) 0%, rgba(108, 122, 137, 0.02) 55%, rgba(255, 255, 255, 0) 100%);
+
+  /* Diagramserier (i ordning) */
+  --chart-1: var(--kis-blue-500);
+  --chart-2: var(--kis-orange-400);
+  --chart-3: var(--kis-green-500);
+  --chart-4: var(--kis-blue-300);
+  --chart-5: var(--kis-orange-200);
+  --chart-6: var(--kis-green-300);
+}
+

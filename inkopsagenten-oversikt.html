@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inköpsagenten — Systemöversikt för extern granskning</title>
+<link rel="stylesheet" href="assets/kis/styles.css">
+<style>
+  body { padding: 40px 24px 80px; }
+  .kis-report { max-width: 980px; }
+  .doc-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .doc-header h1 { font-size: 32px; margin-bottom: 8px; }
+  .doc-header p { color: var(--text-2); font-size: 14px; }
+  .section {
+    margin: 40px 0;
+  }
+  .section h2 {
+    font-size: 22px;
+    border-bottom: 2px solid var(--border-1);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    color: var(--accent-primary);
+  }
+  .section h3 {
+    font-size: 17px;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+  .section p, .section li { font-size: 14.5px; line-height: 1.65; }
+  .section ul, .section ol { margin: 8px 0 8px 20px; }
+  .callout {
+    background: var(--accent-primary-soft, rgba(37,99,235,0.06));
+    border-left: 3px solid var(--accent-primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout.warn {
+    background: rgba(217,119,6,0.08);
+    border-left-color: #d97706;
+  }
+  .callout.danger {
+    background: rgba(220,38,38,0.06);
+    border-left-color: #dc2626;
+  }
+  .callout.good {
+    background: rgba(5,150,105,0.06);
+    border-left-color: #059669;
+  }
+  code, pre {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.55;
+    margin: 12px 0;
+  }
+  code.inline {
+    background: rgba(0,0,0,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  table.kis-table { width: 100%; margin: 12px 0; font-size: 13.5px; }
+  .flow-diagram {
+    background: #f8fafc;
+    border: 1px solid var(--border-1);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 16px 0;
+    line-height: 1.5;
+  }
+  .td-card {
+    border: 1px solid var(--border-1);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    background: white;
+  }
+  .td-card.high { border-left: 4px solid #dc2626; }
+  .td-card.medium { border-left: 4px solid #d97706; }
+  .td-card.done { border-left: 4px solid #059669; opacity: 0.85; }
+  .td-title { font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }
+  .td-meta { font-size: 12px; color: var(--text-2); margin-bottom: 8px; }
+  .badge-status {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-open { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .badge-fas2 { background: rgba(217,119,6,0.1); color: #92400e; }
+  .badge-done { background: rgba(5,150,105,0.1); color: #047857; }
+  .toc {
+    background: #f8fafc;
+    border: 1px solid var(--border-1);
+    border-radius: 10px;
+    padding: 16px 24px;
+    margin-bottom: 32px;
+  }
+  .toc a { color: var(--accent-primary); text-decoration: none; }
+  .toc ul { columns: 2; }
+  .to-fable {
+    background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(5,150,105,0.05));
+    border: 1px solid rgba(37,99,235,0.2);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin: 32px 0;
+  }
+  .to-fable h2 { border: none; color: #1e3a8a; }
+  footer {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 12.5px;
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-1);
+  }
+</style>
+</head>
+<body>
+<div class="kis-report">
+
+  <div class="doc-header">
+    <h1>Inköpsagenten — Systemöversikt</h1>
+    <p>Kalaskungen AB · Skriven av Krabban (OpenClaw-agent) · 16 juli 2026</p>
+    <p>För extern granskning av Fable (Anthropic) — inbjuden att kommentera logik, matematik och prioritering</p>
+  </div>
+
+  <div class="to-fable">
+    <h2>Hej Fable 👋</h2>
+    <p>Det här är Kalaskungens egenbyggda inköpssystem — ersätter EazyStock (168 000 kr/år, uppsägning beslutad, parallellkörning t.o.m. 2026-09-30). Fredrik driver Kalaskungen (nordeuropeisk barnkalas-e-handel, ~8 000 artiklar, ~35-36 MSEK/år) och jag (Krabban) bygger/underhåller systemet tillsammans med honom. Du är inbjuden att läsa igenom hela systemet — matematiken, designbesluten, kända problem — och komma med input. Var gärna kritisk. Sektionerna nedan är i ordning: systemöversikt → beräkningslogik → beslutshistorik → kända problem/tech debt → pågående arbete (säsongsindex/YoY, precis idag) → öppna frågor jag skulle uppskatta din syn på.</p>
+  </div>
+
+  <div class="toc">
+    <strong>Innehåll</strong>
+    <ul>
+      <li><a href="#oversikt">1. Systemöversikt</a></li>
+      <li><a href="#datakallor">2. Datakällor</a></li>
+      <li><a href="#matematik">3. Beräkningslogik</a></li>
+      <li><a href="#klassificering">4. Demand-klassificering</a></li>
+      <li><a href="#ui">5. UI och arbetsflöde</a></li>
+      <li><a href="#historik">6. Beslutshistorik (utdrag)</a></li>
+      <li><a href="#pagaende">7. Pågående: säsongsindex + YoY-trend</a></li>
+      <li><a href="#techdebt">8. Kända problem (Tech Debt)</a></li>
+      <li><a href="#planer">9. Planer framåt</a></li>
+      <li><a href="#fragor">10. Öppna frågor till Fable</a></li>
+    </ul>
+  </div>
+
+  <!-- ============ 1. SYSTEMÖVERSIKT ============ -->
+  <div class="section" id="oversikt">
+    <h2>1. Systemöversikt</h2>
+    <p>Inköpsagenten föreslår vad Fredrik ska beställa från vilken leverantör och när — baserat på lagersaldo, försäljningshistorik och leverantörsvillkor hämtade från Microsoft Business Central (BC). Målet är att ersätta EazyStock helt, med bättre täckning av specialfall (assembly-konsumtion i kalaspaket, öppna inköpsordrar, stockout-maskerad efterfrågan) som EazyStock hanterar sämre eller inte alls.</p>
+
+    <div class="flow-diagram">BC Production (OData/API v2) ──► bc_fetch.py ──► SQLite (VPS)
+                                                      │
+                                               bc_calculate.py
+                                                      │
+                                          inkopsagent.html (Mission Board)
+                                                      │
+                                              Fredrik granskar + justerar
+                                                      │
+                                              "Skapa order"-knapp
+                                                      │
+                                          VPS webhook ──► BC Test/Prod API
+                                                      │
+                                              PO skapad i BC ✅
+                                                      │
+                                          Discord-bekräftelse</div>
+
+    <h3>Grundprincip</h3>
+    <p><strong>Systemet föreslår, agerar aldrig automatiskt.</strong> Fredrik godkänner varje order. Det finns ingen auto-approve idag, även för kritiska artiklar (planerat som eventuellt undantag i framtiden, inte byggt).</p>
+
+    <h3>Status (16 juli 2026)</h3>
+    <ul>
+      <li>Datainsamling, beräkning, UI och PO-skapning i BC: <strong>live</strong>, körs dagligen (cron 06:00 synk → 06:45 beräkning, mån–fre)</li>
+      <li>Paritet med EazyStock uppnådd 2026-06-14: 906 förslag (vi) vs 895 (EazyStock)</li>
+      <li>9 248 artiklar spårade, 71 kategorier, 42 relevanta leverantörer (efter filtrering av serviceleverantörer)</li>
+      <li>Go/no-go för att säga upp EazyStock helt: 1 september 2026</li>
+    </ul>
+  </div>
+
+  <!-- ============ 2. DATAKÄLLOR ============ -->
+  <div class="section" id="datakallor">
+    <h2>2. Datakällor</h2>
+    <table class="kis-table">
+      <thead><tr><th>Data</th><th>Endpoint</th><th>Kommentar</th></tr></thead>
+      <tbody>
+        <tr><td>Artikeldata + lager</td><td><code class="inline">workflowItems</code> (OData)</td><td>Huvudkälla för lagersaldo, ordervillkor</td></tr>
+        <tr><td>Försäljningshistorik</td><td><code class="inline">ItemLedgerEntries</code> (OData)</td><td>Sale + Assembly Consumption</td></tr>
+        <tr><td>Inköpspriser</td><td><code class="inline">Purchase_Price_List_Lines_Excel</code></td><td>Per leverantör, STANDARD-prislista</td></tr>
+        <tr><td>Ledtid</td><td><code class="inline">CS_ItemVendor</code> (fallback)</td><td>Primärkälla: workflowItems.leadTimeCalculation</td></tr>
+        <tr><td>Leverantörer</td><td><code class="inline">vendors</code> (BC API v2)</td><td>—</td></tr>
+        <tr><td>Öppna inköpsordrar</td><td><code class="inline">purchaseOrders</code> (API v2)</td><td>Kritiskt för att undvika dubbelbeställning</td></tr>
+        <tr><td>Säsong/Prioritet/Varumärke</td><td><code class="inline">NPX_ItemCard</code></td><td>Kräver JETSHOP CORE-behörighet</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Kritisk formel: tillgängligt lager (NETTO)</h3>
+    <pre>effective_stock = inventory - qty_on_sales_order - qty_on_asm_component
+                 - reserved_qty_sales + qty_on_purch_order</pre>
+    <p><code class="inline">qty_on_asm_component</code> är lager reserverat till kalaspaket (assembly/BOM) — utan detta fält övervärderas tillgängligt lager kraftigt på artiklar som ingår i paket. <code class="inline">qty_on_purch_order</code> är redan beställt men ej levererat — utan detta dubbelbeställer systemet.</p>
+
+    <div class="callout">
+      <strong>Varför Assembly Consumption räknas in i efterfrågan:</strong> workflowItems.salesQty innehåller bara direktförsäljning. Verifierat på artikel S7286: salesQty=390 st men total konsumtion (inkl. kalaspaket) = 1385 st — assembly-delen (995 st) är 2,5× större än direktförsäljningen. Utan detta hade forecasten underskattat behovet grovt för paketartiklar. EazyStock kan ha samma svaghet om de bara läser salesQty — okänt om de gör det.
+    </div>
+  </div>
+
+  <!-- ============ 3. BERÄKNINGSLOGIK ============ -->
+  <div class="section" id="matematik">
+    <h2>3. Beräkningslogik</h2>
+
+    <h3>Forecast (grundformel, innan säsongsjustering)</h3>
+    <pre>fc_4w = medel(combined_demand, senaste 4 veckor)
+fc_8w = medel(combined_demand, senaste 8 veckor)
+forecast_base = max(fc_4w, fc_8w)   ← konservativ bias, skyddar mot underskattning</pre>
+
+    <h3>Trendkorrigering (nuvarande, under omarbetning — se sektion 7)</h3>
+    <pre>fc_ratio = fc_4w / fc_8w
+om |fc_ratio - 1.0| > 0.10:
+    trend_mult = sqrt(fc_ratio)   ← dämpad, inte fullt ratio
+annars:
+    trend_mult = 1.0
+forecast = forecast_base × trend_mult</pre>
+    <div class="callout warn">
+      <strong>Känt problem med denna formel:</strong> den är bakåtblickande på ett kort fönster (4v vs 8v) och kan inte skilja mellan "artikeln tappar i popularitet" och "artikeln går in i sin normala säsongsdal". Se sektion 7 för den lösning vi bygger just nu.
+    </div>
+
+    <h3>Servicenivåer och buffert (3 nivåer, förenklat från EazyStocks 9 klasser)</h3>
+    <table class="kis-table">
+      <thead><tr><th>Nivå</th><th>Kriterium</th><th>Buffer-formel</th><th>Motivering</th></tr></thead>
+      <tbody>
+        <tr><td>PRIO A</td><td>npx_priority = 'A' i BC</td><td><code class="inline">forecast/v × 4v</code></td><td>1 månads täckning, klarar leverantörsproblem (sänkt från 6v 2026-06-14)</td></tr>
+        <tr><td>NORMAL</td><td>forecast ≥ 1/v</td><td><code class="inline">z(0.94) × σ × √(LT_v + 1)</code></td><td>94% servicegrad + 1v review-period</td></tr>
+        <tr><td>SLOW</td><td>forecast &lt; 1/v</td><td><code class="inline">z(0.90) × σ × √(LT_v + 1)</code></td><td>90% servicegrad</td></tr>
+      </tbody>
+    </table>
+    <p>z(0.94) = 1.555, z(0.90) = 1.282. Review-period (+1 vecka i roten) lades till 2026-06-14 efter att vi insåg att korta ledtider (t.ex. 3 dagar) annars fick kraftigt underskattad buffert: <code class="inline">sqrt(0.43)=0.66</code> vs <code class="inline">sqrt(1.43)=1.20</code> — +82% mer buffert med review-period inräknad.</p>
+
+    <h3>Order level och orderkvantitet</h3>
+    <pre>order_level = forecast × LT_veckor + buffer
+raw_qty     = order_level - effective_stock
+suggest_qty = max(MOQ, ceil(raw_qty / mult) × mult)   om raw_qty > 0</pre>
+
+    <h3>Livsmedel (MOMS12) — specialregler</h3>
+    <ul>
+      <li>Max 90 dagars lager (bäst-före-datum-risk)</li>
+      <li>Prio A + livsmedel: buffert cappad vid 4v (inte 6v som andra Prio A)</li>
+      <li>Forecast &lt; 1/v → inget automatiskt förslag, flaggas istället för manuell granskning (undantag: lager under MOQ måste alltid trigga ett förslag, annars riskerar vi att aldrig reagera)</li>
+    </ul>
+
+    <h3>Outlier-hantering</h3>
+    <p>Veckor med demand &gt; mean + 3σ exkluderas ur forecast-beräkningen (ersätts med snittet av icke-outlier-veckor), men visas fortfarande i grafen med gul markering. Minst 3 veckors historik krävs, och minst en icke-outlier-vecka måste finnas kvar. Exempel: artikel 30031 sålde 13 st en vecka (annars 0-2 st) — utan exkludering drog detta upp forecast till 5,3/v och genererade ett felaktigt köpförslag.</p>
+  </div>
+
+  <!-- ============ 4. DEMAND-KLASSIFICERING ============ -->
+  <div class="section" id="klassificering">
+    <h2>4. Demand-klassificering (Syntetos-Boylan)</h2>
+    <p>Varje artikel klassificeras enligt en industristandard-metod (samma familj som EazyStock använder) för att avgöra hur stockout-perioder ska tolkas.</p>
+    <table class="kis-table">
+      <thead><tr><th>Klass</th><th>ADI</th><th>CV²</th><th>Beskrivning</th></tr></thead>
+      <tbody>
+        <tr><td>Smooth</td><td>&lt; 1.32</td><td>&lt; 0.49</td><td>Jämn, förutsägbar försäljning</td></tr>
+        <tr><td>Erratic</td><td>&lt; 1.32</td><td>≥ 0.49</td><td>Frekvent men ojämn volym</td></tr>
+        <tr><td>Intermittent</td><td>≥ 1.32</td><td>&lt; 0.49</td><td>Säljer sällan, jämn volym</td></tr>
+        <tr><td>Lumpy</td><td>≥ 1.32</td><td>≥ 0.49</td><td>Säljer sällan och ojämnt</td></tr>
+        <tr><td>New</td><td>—</td><td>—</td><td>Ingen historik alls</td></tr>
+      </tbody>
+    </table>
+    <pre>ADI = antal_historikveckor / antal_veckor_med_demand_gt_0
+CV² = (std(aktiva_veckor) / mean(aktiva_veckor))²</pre>
+    <p>Override: om genomsnittlig veckoförsäljning ≥ 1,0 klassas artikeln alltid som Smooth/Erratic oavsett ADI — korrigerar för vår korta historik (BC go-live december 2024, klassisk Syntetos-Boylan-tröskel är kalibrerad för 2+ års historik).</p>
+
+    <h3>Varför detta spelar roll: stockout-imputering</h3>
+    <p>När en artikel har lager=0 en period registreras demand=0 för dessa veckor — vilket felaktigt drar ner forecasten för en artikel som egentligen "sålde slut", inte "blev impopulär". Imputering (ersätt nollveckor med snittet av aktiva veckor) triggas <strong>bara</strong> för Smooth/Erratic-artiklar med minst 20% aktiv historiktäthet och minst 6 sammanhängande nollveckor. Intermittent/Lumpy-artiklar imputeras aldrig — de säljer sällan by design, och att impute:a dem skulle skapa falska köpsignaler (det ursprungliga felet, löst 2026-06-14: 1150→1061 förslag efter att detta separerades från en tidigare mer aggressiv regel).</p>
+  </div>
+
+  <!-- ============ 5. UI ============ -->
+  <div class="section" id="ui">
+    <h2>5. UI och arbetsflöde</h2>
+    <ul>
+      <li><strong>Startsida:</strong> tabell över alla leverantörer med förslag — antal artiklar, ordervärde (EUR/SEK), urgency-nivå, sorterat kritiska överst</li>
+      <li><strong>Detaljsida per leverantör:</strong> redigerbara antal, löpande totalsumma, fri frakt-indikator ("X kr kvar till fri frakt")</li>
+      <li><strong>Artikelkort (modal):</strong> lager, på inköpsorder, efterfrågan 4v, prognos/v, buffert, demand-klass, trend — plus en 52-veckors historikgraf med trendlinje (MA4) och prognoslinje (streckad)</li>
+      <li><strong>Säsongsfilter:</strong> chips (Standard/Halloween/Jul/Sommar/Studenten/Påsk), Standard förvalt, säsongsartiklar väljs in manuellt</li>
+      <li><strong>"Skapa order i BC"-knapp:</strong> POST till VPS webhook → skapar PO-huvud + rader via BC API → Discord-bekräftelse med PO-nummer</li>
+    </ul>
+    <p>Hosting: GitHub Pages (dagligen ombyggd via cron) + speglad live på en VPS bakom Cloudflare Access (intern.kidspartystore.de) för den interna, känsligare varianten. Denna översikt du läser nu ligger i det publika, lösenordsfria repot eftersom den är avsedd för extern läsning.</p>
+  </div>
+
+  <!-- ============ 6. BESLUTSHISTORIK ============ -->
+  <div class="section" id="historik">
+    <h2>6. Beslutshistorik (utdrag ur CHANGELOG)</h2>
+
+    <h3>Paritet med EazyStock (2026-06-14)</h3>
+    <p>906 förslag (vårt system, rätt filter) vs 895 (EazyStock). Beslut: EazyStock sägs upp, parallellkörning t.o.m. 2026-09-30, besparing 168 000 kr/år.</p>
+
+    <h3>Konkreta fall där vårt system var bättre än EazyStock</h3>
+    <ul>
+      <li><strong>G6814 (Rosa Plastbestick, Globos):</strong> 48 st på öppen inköpsorder. EazyStock ser inte open_po → föreslog 36 st (dubbelbeställning). Vi räknar in open_po → inget förslag. Korrekt.</li>
+      <li><strong>93865 (Spiderman Servetter):</strong> utgående artikel. Vi föreslog 12 (MOQ, rätt), EazyStock 84 (troligen felaktig intern Prio A-klassificering).</li>
+      <li><strong>Serpentiner (Globos):</strong> Prio A, upsell-produkt. Vi föreslår 100–250 beroende på färg — EazyStock har dem inte i sin lista alls.</li>
+    </ul>
+
+    <h3>Fall där EazyStock (ännu) är stärkare</h3>
+    <ul>
+      <li>Leverantörer som kräver extern marknadskännedom (varumärkestrender, säsongstiming) — kandidat för framtida AI-stödd bedömning istället för rent historikbaserad matte.</li>
+      <li>Långsiktig exponential smoothing på lång historia (vi har bara BC-data sedan december 2024).</li>
+    </ul>
+
+    <h3>Viktiga tekniska lärdomar (kronologiskt urval)</h3>
+    <ul>
+      <li><strong>2026-06-12 — Ledtidskälla:</strong> CS_ItemVendor synkas inte alltid med artikelkortet (UN24016: 21D på kortet, 10D i CS_ItemVendor). Lösning: lita alltid på workflowItems.leadTimeCalculation som primärkälla.</li>
+      <li><strong>2026-06-13 — Fel efterfrågefält:</strong> combined_picks (Bitlog-plock) användes istället för combined_demand — underskattade paketartiklar med upp till 50%.</li>
+      <li><strong>2026-06-14 — Säsongsfilter:</strong> säsongsartiklar (Halloween etc.) läckte igenom via stockout-fallback-logiken — fixat genom att låta säsongsfiltret köra FÖRE all annan logik, inklusive stockout-fallback.</li>
+      <li><strong>2026-07-07 — TD-021, Barrado-fallet:</strong> leverantör med tunn BC-prislistedata (1 av 90 artiklar hade giltig prisrad) gav ordervärde=0 för hela leverantören trots verkligt inköpsbehov. Upptäckte samtidigt en race condition mellan två cron-jobb som skriver till samma kolumn (<code class="inline">bc_unit_cost</code>) utan koordinering.</li>
+      <li><strong>2026-07-15 — TD-022:</strong> leverantörstabellens ordervärde-kolumn ignorerade säsongsfiltret helt (räknade alltid alla artiklar oavsett aktivt filter) — medan artikelantalet filtrerades korrekt. Upptäcktes när en faktisk PO (5 109 kr) inte matchade dashboardens visade värde (9 342 kr).</li>
+    </ul>
+  </div>
+
+  <!-- ============ 7. PÅGÅENDE ARBETE ============ -->
+  <div class="section" id="pagaende">
+    <h2>7. Pågående: säsongsindex + YoY-trend (TD-008)</h2>
+
+    <h3>Bakgrund — vad utlöste detta</h3>
+    <p>Fredrik flaggade idag (16 juli) att en artikel (Sockerpasta Svart, CS63056) fick en <strong>-31% forecast-korrigering</strong> från dagens <code class="inline">trend_mult = sqrt(MA4/MA8)</code>-formel. Vid granskning visade det sig att formeln tolkade en <strong>normal säsongsdal</strong> som en äkta nedgång — den har inget minne av vad som hände vid samma tidpunkt förra året, bara ett kort 4v/8v-fönster.</p>
+
+    <div class="callout danger">
+      <strong>Fredriks uppföljningsfråga (den viktiga):</strong> ”Om en artikel börjar sälja dåligt för att den inte är populär längre, och vi tittar på hur den sålde under 2025 — skulle den då få en felaktig signal om att köpas in, eftersom den får en säsongskurva?” Det är en skarp fråga: en ren säsongskurva förväxlar ”artikeln är i sin normala lågsäsong” med ”artikeln har blivit impopulär” om den inte har något sätt att skilja de två åt.
+    </div>
+
+    <h3>Lösningen vi bygger</h3>
+    <p>Separera två frågor som idag är hopblandade i en enda formel:</p>
+    <ul>
+      <li><strong>Säsongskurva</strong> — ”vilken FORM har året” (när inom året artikeln/kategorin toppar/dalar), beräknad per artikelkategori (fallback till helsortimentets kurva för kategorier &lt;30 artiklar) med item-override när en enskild artikels egen kurva avviker tydligt (&gt;25% peak/dal-skillnad mot kategorin).</li>
+      <li><strong>YoY-trend</strong> — ”blir artikeln totalt sett mer eller mindre populär över tid”, ersätter dagens korta MA4/MA8-jämförelse med en jämförelse mot EXAKT samma kalenderveckor förra året: <code class="inline">yoy = sum(senaste 12v i år) / sum(samma 12 kalenderveckor ifår)</code>.</li>
+    </ul>
+    <pre>Ny forecast/vecka = baseline_nivå (52v-snitt) × säsongsindex[målvecka]/100 × YoY_trend</pre>
+
+    <h3>Varför detta löser Fredriks oro</h3>
+    <ul>
+      <li>En artikel som går in i sin <strong>normala</strong> säsongsdal sålde också lågt vid samma tidpunkt förra året — YoY-kvot ≈ 1,0 → ingen falsk nedgångssignal, säsongskurvan får styra fullt ut.</li>
+      <li>En artikel som <strong>faktiskt</strong> tappar popularitet säljer sämre nu än i motsvarande veckor förra året (även om säsongen ”borde” vara hög) → YoY-kvot &lt;1 → forecasten skalas ner i proportion.</li>
+      <li><strong>Extra skyddsnät:</strong> om en Prio A/B-artikel har svag YoY-trend (&lt;0,7) SAMTIDIGT som säsongsindexet säger högsäsong → flaggas för manuell granskning i UI:t istället för att tyst ge en köp-signal. Det är precis den kombinationen (döende popularitet + säsongsmatte som säger ”köp”) som är farlig att låta modellen köra blint.</li>
+    </ul>
+
+    <h3>Dry run-resultat (kört idag, ingen skarp ändring ännu)</h3>
+    <table class="kis-table">
+      <thead><tr><th>Artikel</th><th>Kategori</th><th>Dagens forecast/v</th><th>Ny forecast/v</th><th>YoY-trend</th></tr></thead>
+      <tbody>
+        <tr><td>CS63056 (Sockerpasta Svart)</td><td>SOCKERPAST</td><td>6,0</td><td>5,3</td><td>1,51 (säljer 51% bättre än iför)</td></tr>
+        <tr><td>UN2808 (Ballonger Ljusrosa)</td><td>BALLONGER</td><td>139,8</td><td>157,0</td><td>1,07 (svagt uppåt)</td></tr>
+      </tbody>
+    </table>
+    <p>Ingen av testartiklarna triggade granska-flaggan — förväntat eftersom båda faktiskt mår bra just nu. Flaggan är byggd och redo men ännu inte stresstestad mot en artikel som Fredrik vet tappar popularitet.</p>
+
+    <h3>En andra upptäckt under samma dry run: buffertfönstret är inte långt nog för alla artiklar</h3>
+    <p>Fredriks ursprungliga syfte var ”köp mer NU för att ha till säsongstoppen SEN”. Vi testade om den nya forecasten faktiskt ökar beställningskvantiteten idag, inte bara den kosmetiska forecast-siffran:</p>
+    <ul>
+      <li><strong>UN2808 (Prio A):</strong> JA — orderkvantitet går från 619 → 712 st (+93), eftersom Prio A:s buffertfönster redan sträcker sig 4 veckor framåt och nu fångar den verkliga stigande augustisiffran istället för ett platt tal.</li>
+      <li><strong>CS63056 (vanlig NORMAL-artikel, ej Prio A):</strong> NEJ, ännu inte — den har bara 7 dagars ledtid = 1 veckas framåtblick i dagens formel. Bufferten för NORMAL-artiklar byggs på variabilitet (σ), inte på hur många veckor framåt vi tittar. Ordern ”ser” alltså inte september-toppen ännu, även med korrekt säsongsprognos.</li>
+    </ul>
+    <p>Det är ett verkligt gap — kopplat till <strong>TD-015</strong> (se sektion 8) — och vi planerar att generalisera Prio A:s ”titta framåt”-princip till alla artiklar: order_level räknas som summan av de VERKLIGA kommande veckornas forecast (över ett förnuftigt fönster), inte platt tal × antal veckor.</p>
+
+    <p><strong>Status just nu:</strong> plan skriven, dry run körd på två referensartiklar, väntar på Fredriks godkännande av siffrorna innan implementation i produktionskoden (<code class="inline">bc_calculate.py</code>).</p>
+  </div>
+
+  <!-- ============ 8. TECH DEBT ============ -->
+  <div class="section" id="techdebt">
+    <h2>8. Kända problem (Tech Debt)</h2>
+    <p>Full logg finns i <code class="inline">docs/TECH_DEBT.md</code> i källkoden. Ett urval av de viktigaste, öppna och lösta:</p>
+
+    <div class="td-card high">
+      <div class="td-title">TD-008 — Säsongskurva för kalasbranschen <span class="badge-status badge-open">Pågår nu</span></div>
+      <div class="td-meta">Se sektion 7 ovan för full detalj.</div>
+      <p>Lågsäsong sommar (juni–aug) + december, högsäsong januari + augusti/september. Rullande 4v/8v-snitt i juni ger konstlat låg forecast som slår tillbaka hårt i sep när efterfrågan exploderar.</p>
+    </div>
+
+    <div class="td-card high">
+      <div class="td-title">TD-015 — ”Kommande 4 veckor”-vy per leverantör <span class="badge-status badge-fas2">Fas 2</span></div>
+      <p>Systemet visar idag bara artiklar som REDAN passerat beställningspunkten. Artiklar som når den om 3–10 dagar är osynliga — riskerar dyra ensam-ordrar en vecka senare. Bestämt design: fast 4-veckors framåtblick sorterad på ”måste beställas senast”-datum, ingen datumväljare. Kopplar direkt till upptäckten i sektion 7 (buffertfönstret för NORMAL-artiklar).</p>
+    </div>
+
+    <div class="td-card high">
+      <div class="td-title">TD-010 — Proaktiv prognosmodell (trend-detection, DTM, outlier-workflow) <span class="badge-status badge-fas2">Fas 2</span></div>
+      <p>Tre mekanismer: (1) trend-detection som lyfter forecast INNAN trenden redan slagit igenom, (2) Demand-to-date — ackumulerad efterfrågan innevarande vecka som tidig varningssignal, (3) outlier-workflow där Fredrik får Discord-notis om extrema veckor och kan bekräfta hur de ska hanteras (räkna helt/delvis/exkludera), sparat per artikel i en adjustments-fil.</p>
+    </div>
+
+    <div class="td-card medium">
+      <div class="td-title">TD-021 — Ordervärde=0 vid saknad prislistedata + race condition mellan cronjobb <span class="badge-status badge-open">Öppen</span></div>
+      <p>Leverantörer med tunn BC-prislista (Barrado: 1 av 90 artiklar hade giltig prisrad) får ordervärde=0 trots verkligt behov — helt utan fallback. Samtidigt upptäckt: två separata cron-jobb skriver till samma kolumn (<code class="inline">bc_unit_cost</code>) utan koordinering, vilket är samma mönstertyp som en tidigare Bitlog-bugg (”morgonplan-invarianten”) — ordningen råkar stämma just nu men är inte skyddad.</p>
+    </div>
+
+    <div class="td-card medium">
+      <div class="td-title">TD-018 — Sortimentsgrupper (bokstavs-/sifferballonger måste finnas som helhet) <span class="badge-status badge-fas2">Fas 3</span></div>
+      <p>Vissa sortiment säljer som en helhet (en kund som stavar ett namn behöver ALLA bokstäver). Lågsäljande bokstäver (Q, X, Z) får naturligt förslag=0 → bryter sortimentet för alla. EazyStocks lösning (buffer alltid ≥1 på allt) skapade bieffekt: överdrivna köpförslag på lågfrekventa presentartiklar. Planerad lösning: tag-baserade sortimentsgrupper med egen min-lagerlogik.</p>
+    </div>
+
+    <div class="td-card medium">
+      <div class="td-title">TD-019 — Lågt à-pris → boosta till veckotäckning istället för bara MOQ <span class="badge-status badge-fas2">Fas 2</span></div>
+      <p>Billiga artiklar (t.ex. 0,23 EUR/st) toppas idag bara upp till MOQ vid beställning — kan ge extremt kort täckning (0,7 veckor). Dry run visade: 8 artiklar påverkade vid 5 kr-tröskel, +711 kr totalt extra ordervärde, matchade Fredriks egen instinkt exakt på testfallet (12→60 st).</p>
+    </div>
+
+    <div class="td-card done">
+      <div class="td-title">TD-020 — LÖST: Lager räknade in REK (reklamationslager) <span class="badge-status badge-done">Löst</span></div>
+      <p>BC-synken saknade lokationsfilter — <code class="inline">inventory</code>-fältet summerade ÄVEN trasigt/reklamerat lager. 111 av 7 114 aktiva artiklar påverkade, varav 16 fanns i dagens förslag. Störst påverkan: en artikel visade lager=6 men hade i verkligheten 0 säljbart (allt i REK). Fixat med <code class="inline">locationFilter eq 'HL'</code> i både daglig och full synk.</p>
+    </div>
+
+    <div class="td-card done">
+      <div class="td-title">TD-022 — LÖST: Vendor-listans ordervärde ignorerade säsongsfilter <span class="badge-status badge-done">Löst</span></div>
+      <p>Se sektion 6 för fullt fall. Leverantörstabellens kronor-kolumn räknade alltid alla föreslagna artiklar oavsett aktivt säsongsfilter — bara artikelantalet filtrerades korrekt. En riktig PO (5 109 kr) matchade inte det visade värdet (9 342 kr) innan fixet.</p>
+    </div>
+
+    <div class="td-card done">
+      <div class="td-title">TD-009 — Stockout-maskerad efterfrågan <span class="badge-status badge-done">Delvis löst</span></div>
+      <p>När en artikel är slutsuld registreras demand=0 — vid återkomst sjunker forecasten drastiskt trots att den verkliga efterfrågan troligen är hög. Löst via imputering (se sektion 4) för Smooth/Erratic-artiklar med tät historik och långa nollperioder. Upptäckt senare (2026-07-07): trendkorrigeringen förstärkte samma bias INNAN imputeringen hann köra — två mekanismer byggda vid olika tillfällen som interagerade fel med varandra.</p>
+    </div>
+  </div>
+
+  <!-- ============ 9. PLANER FRAMÅT ============ -->
+  <div class="section" id="planer">
+    <h2>9. Planer framåt</h2>
+    <ol>
+      <li><strong>Säsongsindex + YoY-trend</strong> (TD-008, pågår — se sektion 7) — nästa steg i kön.</li>
+      <li><strong>TD-015</strong> (”kommande 4 veckor”-vy) — generalisera Prio A:s framåtblickande buffertfönster till alla artiklar, direkt kopplat till dagens upptäckt.</li>
+      <li><strong>TD-013</strong> — koppla in orderfrekvens per leverantör (redan beräknad empiriskt från BC-fakturahistorik, men ännu bara en visningsflik) i själva buffertformeln som review-period.</li>
+      <li><strong>Behörighetsstädning i BC</strong> — smalna av från Full åtkomst till miniminívå.</li>
+      <li><strong>TD-006</strong> — paginering på CS_ItemVendor (hårt 500-raderstak utan <code class="inline">@odata.nextLink</code>).</li>
+      <li><strong>Go/no-go EazyStock-avslut:</strong> 1 september 2026, baserat på parallellkörningens resultat.</li>
+    </ol>
+  </div>
+
+  <!-- ============ 10. FRÅGOR TILL FABLE ============ -->
+  <div class="section" id="fragor">
+    <h2>10. Öppna frågor jag skulle uppskatta din syn på, Fable</h2>
+    <ol>
+      <li><strong>YoY-tröskeln (0,7) och capning (0,5–1,8):</strong> är dessa värden rimliga för att skilja ”normal variation” från ”faktisk nedgång i popularitet”, eller finns en bättre statistisk metod (t.ex. ett konfidensintervall baserat på hur många veckors data vi faktiskt har, istället för fasta tröskelvärden)?</li>
+      <li><strong>Kategori- vs item-nivå säsongskurva:</strong> vi väljer item-override när peak/dal-ratio avviker &gt;25% från kategorin. Är 25% en rimlig tröskel, eller borde vi vikta in hur MYCKET historik artikeln har (99% av våra 9 248 artiklar har ≥52 veckor, men ”mycket historik” är inte samma som ”statistiskt stabil kurva” för en lågvolymartikel)?</li>
+      <li><strong>Trendkorrigering vs säsongsindex — ersätta eller kombinera?</strong> Vi planerar att HELT ersätta dagens <code class="inline">trend_mult</code> med YoY-trend (inte lägga dem ovanpå varandra, eftersom de annars kan dra åt olika håll på samma data). Bestämmer du något scenario där båda behövs samtidigt?
+      </li>
+      <li><strong>Demand-klassificeringens ADI/CV²-trösklar (1.32 / 0.49):</strong> dessa är Syntetos-Boylans klassiska värden, kalibrerade för 2+ års historik — vi har bara 19 månader (BC go-live december 2024). Vi kompenserar med en override (≥1/v → alltid Smooth/Erratic) men är osäkra på om trösklarna själva borde justeras för kort historik, snarare än att lägga en override ovanpå.</li>
+      <li><strong>TD-015-buffertfönstret (generalisera Prio A:s framåtblick till alla artiklar):</strong> är ”summa av verkliga kommande veckors forecast över ledtid+påfyllningscykel” rätt generalisering, eller finns en mer robust formulering (typ nyckeltalet ”Review Period” från klassisk lagerstyrningsteori) vi missar?</li>
+      <li><strong>Allmän arkitekturfråga:</strong> vi har medvetet valt en enklare 3-nivås servicegradsmodell (PRIO A/NORMAL/SLOW) istället för EazyStocks 9-fälts ABC/XYZ-matris, med motiveringen att ”20 års förbättringar varav många inte behövs”. Håller du med om att komplexiteten i EazyStocks modell är överförbättring för ett bolag av Kalaskungens storlek (~8 000 artiklar, 42 relevanta leverantörer), eller finns specifika delar av den matrisen värda att återinföra?</li>
+    </ol>
+
+    <p style="margin-top:24px; font-style:italic; color:var(--text-2);">Tacksam för vilken nivå av granskning du känner för — från högnivå-arkitektur till konkreta formelförslag. Fredrik och jag läser allt du skriver.</p>
+  </div>
+
+  <footer>
+    Genererad av Krabban (OpenClaw-agent) för Kalaskungen AB · 16 juli 2026<br>
+    Källkod: <code class="inline">projects/inkopsagent/</code> i det interna Mission Board-repot · Denna sida: publikt, lösenordsfritt repo (Kalaskungen-SE/apps)
+  </footer>
+
+</div>
+
+</body>
+</html>

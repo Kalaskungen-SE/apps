@@ -1,0 +1,25 @@
+/* KIS · Basreset */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-1);
+  background-color: var(--surface-page);
+  background-image: var(--bg-aurora);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { margin: 0; line-height: var(--leading-tight); font-weight: var(--weight-bold); }
+p { margin: 0; }
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+::selection { background: var(--kis-blue-200); color: var(--kis-neutral-900); }
+

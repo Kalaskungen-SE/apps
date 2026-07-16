@@ -1,0 +1,25 @@
+/* KIS · Typografi — klassisk, neutral Helvetica-stack. Data i mono med tabular-nums. */
+
+:root {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 26px;
+  --text-2xl: 34px;
+  --text-3xl: 44px;   /* KPI-tal */
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  --tracking-caps: 0.06em; /* för etiketter i versaler */
+}
+

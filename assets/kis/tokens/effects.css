@@ -1,0 +1,26 @@
+/* KIS · Effekter — liquid glass, skuggor, övergångar */
+
+:root {
+  /* Glas: halvtransparent vit + blur + ljus kant. Används på paneler, sidebar, topbar. */
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-outer: rgba(21, 26, 33, 0.08);
+  --glass-blur: 18px;
+  --glass-saturate: 1.5;
+
+  /* Skuggor — mjuka, blåtonade, aldrig hårda */
+  --shadow-sm: 0 1px 2px rgba(22, 41, 79, 0.06);
+  --shadow-md: 0 2px 8px rgba(22, 41, 79, 0.07), 0 1px 2px rgba(22, 41, 79, 0.05);
+  --shadow-lg: 0 8px 28px rgba(22, 41, 79, 0.10), 0 2px 6px rgba(22, 41, 79, 0.06);
+  --shadow-glass: 0 8px 32px rgba(22, 41, 79, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+  /* Fokusring */
+  --focus-ring: 0 0 0 3px rgba(58, 111, 208, 0.28);
+
+  /* Rörelse — snabb och saklig */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
